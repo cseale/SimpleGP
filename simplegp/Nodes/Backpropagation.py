@@ -12,7 +12,6 @@ class Backpropagation:
 	def Backprop( self, individual ):
 		# TODO: boolean flag to turn off backprop for comparision runs
 
-
 		# assume worst fitness possible at start
 		previousFitness = float("inf")
 		previousIndividual = None
