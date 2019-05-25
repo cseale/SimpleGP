@@ -3,11 +3,16 @@ import numpy as np
 
 class Node:	# Base class with general functionalities
 
-	def __init__(self):
+	def __init__(self, arity = 0):
 		self.fitness = np.inf
 		self.parent = None
-		self.arity = 0	# arity is the number of expected inputs
+		self.arity = arity	# arity is the number of expected inputs
 		self._children = []
+		self.weights = np.random.normal(size = self.arity * 2)
+		self.dw = [None] * (self.arity * 2)
+		self.X0 = None
+		self.X1 = None
+
 
 	def GetSubtree( self ):
 		result = []
@@ -32,6 +37,9 @@ class Node:	# Base class with general functionalities
 		N.parent = self
 
 	def GetOutput( self, X ):
+		return None
+
+	def GradientDescent(self, input_grad, learning_rate):
 		return None
 
 	def GetDepth(self):

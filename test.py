@@ -7,27 +7,40 @@ from copy import deepcopy
 # Internal imports
 from simplegp.Nodes.BaseNode import Node
 from simplegp.Nodes.SymbolicRegressionNodes import *
+from simplegp.Nodes.Backpropagation import Backpropagation
 from simplegp.Fitness.FitnessFunction import SymbolicRegressionFitness
 from simplegp.Evolution.Evolution import SimpleGP
 
 np.random.seed(42)
 
 # Load regression dataset 
-X, y = sklearn.datasets.load_boston( return_X_y=True )
+X, y = sklearn.datasets.load_diabetes( return_X_y=True )
 # Take a dataset split
 X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.5, random_state=42 )
 # Set fitness function
 fitness_function = SymbolicRegressionFitness( X_train, y_train )
+backprop_function = Backpropagation( X_train, y_train )
 
 # Set functions and terminals
-functions = [ AddNode(), SubNode(), MulNode(), AnalyticQuotientNode() ]	# chosen function nodes	
+functions = [
+	AddNode()
+	, SubNode()
+	, MulNode()
+	, DivNode()
+	, CosNode()
+	, SinNode() 
+]	
+# chosen function nodes	
 terminals = [ EphemeralRandomConstantNode() ]	# use one ephemeral random constant node
 for i in range(X.shape[1]):
 	terminals.append(FeatureNode(i))	# add a feature node for each feature
 
 # Run GP
-sgp = SimpleGP(fitness_function, functions, terminals, pop_size=100, max_generations=100)	# other parameters are optional
+# TODO: Put the simple GP into a loop such that we can run all experiments on AWS etc, and collect all the data
+sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size=100, max_generations=100)	# other parameters are optional
 sgp.Run()
+
+# TODO: Write all the below data to logs in some way.
 
 # Print results
 # Show the evolved function

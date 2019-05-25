@@ -12,6 +12,7 @@ class SimpleGP:
 	def __init__(
 		self,
 		fitness_function,
+		backprop_function,
 		functions,
 		terminals,
 		pop_size=500,
@@ -26,6 +27,7 @@ class SimpleGP:
 		):
 
 		self.pop_size = pop_size
+		self.backprop_function = backprop_function
 		self.fitness_function = fitness_function
 		self.functions = functions
 		self.terminals = terminals
@@ -67,7 +69,8 @@ class SimpleGP:
 		population = []
 		for i in range( self.pop_size ):
 			population.append( Variation.GenerateRandomTree( self.functions, self.terminals, self.initialization_max_tree_height ) )
-			self.fitness_function.Evaluate( population[i] )
+			population[i] = self.backprop_function.Backprop(population[i])
+			self.fitness_function.Evaluate(population[i])
 
 		while not self.__ShouldTerminate():
 
@@ -85,6 +88,7 @@ class SimpleGP:
 					del o
 					o = deepcopy( population[i] )
 				else:
+					o = self.backprop_function.Backprop(o)
 					self.fitness_function.Evaluate(o)
 
 				O.append(o)
