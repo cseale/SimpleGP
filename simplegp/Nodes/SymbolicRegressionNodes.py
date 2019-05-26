@@ -90,7 +90,7 @@ class MulNode(Node):
         X1 = self._children[1].GetOutput( X )
         self.dw[0] = X0*self.weights[2]*X1 + X0*self.weights[3]
         self.dw[1] = self.weights[2]*X1 + self.weights[3]
-        self.dw[2] = self.weights[1]*X0*X1 + X1*self.weights[1]
+        self.dw[2] = self.weights[0]*X0*X1 + X1*self.weights[1]
         self.dw[3] = self.weights[0]*X0 + self.weights[1]
         self.X0 = X0
         self.X1 = X1
