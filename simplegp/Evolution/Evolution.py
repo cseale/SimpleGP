@@ -56,39 +56,39 @@ class SimpleGP:
 			must_terminate = True
 
 		if must_terminate:
-			print('Terminating at\n\t', 
+			print('Terminating at\n\t',
 				self.generations, 'generations\n\t', self.fitness_function.evaluations, 'evaluations\n\t', np.round(elapsed_time,2), 'seconds')
 
 		return must_terminate
 
 
-	def Run(self):
+	def Run(self, applyBackProp):
 
 		self.start_time = time.time()
 
 		population = []
 		for i in range( self.pop_size ):
 			population.append( Variation.GenerateRandomTree( self.functions, self.terminals, self.initialization_max_tree_height ) )
-			population[i] = self.backprop_function.Backprop(population[i])
+			population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
 			self.fitness_function.Evaluate(population[i])
 
 		while not self.__ShouldTerminate():
 
 			O = []
-			
+
 			for i in range(len(population)):
-				
+
 				o = deepcopy(population[i])
 				if ( random() < self.crossover_rate ):
 					o = Variation.SubtreeCrossover( o, population[randint(len(population))] )
 				if ( random() < self.mutation_rate ):
 					o = Variation.SubtreeMutation( o, self.functions, self.terminals, max_height=self.initialization_max_tree_height )
-				
+
 				if len(o.GetSubtree()) > self.max_tree_size:
 					del o
 					o = deepcopy( population[i] )
 				else:
-					o = self.backprop_function.Backprop(o)
+					o = self.backprop_function.Backprop(o) if applyBackProp else o
 					self.fitness_function.Evaluate(o)
 
 				O.append(o)
