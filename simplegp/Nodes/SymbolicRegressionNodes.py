@@ -14,8 +14,12 @@ class AddNode(Node):
 		return '+'
 
 	def GetOutput( self, X ):
+        # Recursively compute output of the children
 		X0 = self._children[0].GetOutput( X )
 		X1 = self._children[1].GetOutput( X )
+        self.X0 = X0
+        self.X1 = X1
+
 		# derivatives of node output w.r.t weights
 		self.dw[0] = X0
 		self.dw[1] = 1
