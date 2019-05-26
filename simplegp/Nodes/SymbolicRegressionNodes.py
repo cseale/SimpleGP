@@ -25,7 +25,8 @@ class AddNode(Node):
         self.dw[1] = 1
         self.dw[2] = X1
         self.dw[3] = 1
-        return X0 + X1
+
+        return (self.weights[0]*X0 + self.weights[1]) + (self.weights[2]*X1 + self.weights[3])
         
     # input_grad is deriative of loss w.r.t output
     # see: https://cdn-images-1.medium.com/max/1600/1*FceBJSJ7j8jHjb4TmLV0Ew.png
@@ -61,7 +62,7 @@ class SubNode(Node):
         self.dw[1] = 1
         self.dw[2] = -X1
         self.dw[3] = -1
-        return X0 - X1
+        return (self.weights[0]*X0 + self.weights[1]) - (self.weights[2]*X1 + self.weights[3])
 
     def GradientDescent(self, input_grad, learning_rate):
         self._children[0].GradientDescent(self.weights[0] * input_grad, learning_rate)
@@ -94,7 +95,8 @@ class MulNode(Node):
         self.dw[3] = self.weights[0]*X0 + self.weights[1]
         self.X0 = X0
         self.X1 = X1
-        return np.multiply(X0 , X1)
+        return np.multiply(self.weights[0]*X0 + self.weights[1],
+                           self.weights[2]*X1 + self.weights[3])
 
     def GradientDescent(self, input_grad, learning_rate):
         self._children[0].GradientDescent((self.weights[0]*self.weights[2]*self.X1 + self.weights[0]*self.weights[3]) * input_grad, learning_rate)
@@ -128,7 +130,7 @@ class DivNode(Node):
         self.dw[2] = self.tmp2 * X1
         self.dw[3] = self.tmp2
 
-        return np.multiply( np.sign(X1), X0) / ( 1e-2 + np.abs(X1) )
+        return np.multiply(np.sign(self.weights[2]*X1 + self.weights[3]), self.weights[0]*X0 + self.weights[1]) / ( 1e-2 + np.abs(self.weights[2]*X1 + self.weights[3]))
     
     def GradientDescent(self, input_grad, learning_rate):
         self._children[0].GradientDescent(self.tmp1 * self.weights[0] * input_grad, learning_rate)
@@ -154,7 +156,7 @@ class AnalyticQuotientNode(Node):
     def GetOutput( self, X ):
         X0 = self._children[0].GetOutput( X )
         X1 = self._children[1].GetOutput( X )
-        return X0 / np.sqrt( 1 + np.square(X1) )
+        return X0 / np.sqrt( 1 + np.square((self.weights[2]*X1 + self.weights[3])) )
 
     
 class ExpNode(Node):
@@ -194,7 +196,7 @@ class SinNode(Node):
         self.dw[0] = tmp*X0
         self.dw[1] = tmp
         self.X0 = X0
-        return np.sin(X0)
+        return np.sin(self.weights[0]*X0 + self.weights[1])
 
     def GradientDescent(self, input_grad, learning_rate):
         self._children[0].GradientDescent((np.cos(self.weights[0]  * self.X0 + self.weights[1])*self.weights[0]) * input_grad, learning_rate)
@@ -218,7 +220,7 @@ class CosNode(Node):
         self.dw[0] = tmp*X0
         self.dw[1] = tmp
         self.X0 = X0
-        return np.cos(X0)
+        return np.cos(self.weights[0]*X0 + self.weights[1])
 
     def GradientDescent(self, input_grad, learning_rate):
         self._children[0].GradientDescent((-np.sin(self.weights[0]  * self.X0 + self.weights[1])*self.weights[0]) * input_grad, learning_rate)
