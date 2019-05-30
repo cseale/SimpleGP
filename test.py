@@ -34,7 +34,6 @@ for i in range(X.shape[1]):
 
 # Run GP
 # TODO: Put the simple GP into a loop such that we can run all experiments on AWS etc, and collect all the data
-
 sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size=100, max_generations=100, mutation_rate=0.5, crossover_rate=0.5)	# other parameters are optional
 sgp.Run(applyBackProp=False)
 

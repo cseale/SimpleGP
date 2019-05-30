@@ -37,3 +37,6 @@ Measure
 
 
 
+## Questions For Marco
+- [ ] What sort of parameters should we test for in the general GP (not including gradient descent)? Do we even need to optimise these?
+
