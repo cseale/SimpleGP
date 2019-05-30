@@ -25,11 +25,8 @@ functions = [
 	AddNode()
 	, SubNode()
 	, MulNode()
-	, DivNode()
-	, CosNode()
-	, SinNode() 
-]	
-# chosen function nodes	
+]
+# chosen function nodes
 terminals = [ EphemeralRandomConstantNode() ]	# use one ephemeral random constant node
 for i in range(X.shape[1]):
 	terminals.append(FeatureNode(i))	# add a feature node for each feature
@@ -37,8 +34,8 @@ for i in range(X.shape[1]):
 # Run GP
 # TODO: Put the simple GP into a loop such that we can run all experiments on AWS etc, and collect all the data
 backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.001 )
-sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size=100, max_generations=100)	# other parameters are optional
-sgp.Run()
+sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size=100, max_generations=100, mutation_rate=0.5, crossover_rate=0.5)	# other parameters are optional
+sgp.Run(applyBackProp=True)
 
 # TODO: Write all the below data to logs in some way.
 
