@@ -25,7 +25,8 @@ class SimpleGP:
 		initialization_max_tree_height=4,
 		max_tree_size=100,
 		tournament_size=4,
-		uniform_k=1
+		uniform_k=1,
+		backprop_every_generations = 1
 		):
 
 		self.pop_size = pop_size
@@ -48,7 +49,7 @@ class SimpleGP:
 
 		# gradient descent params
 		self.uniform_k = 1
-
+		self.backprop_every_generations = 1
 
 	def __ShouldTerminate(self):
 		must_terminate = False
@@ -109,11 +110,10 @@ class SimpleGP:
 						o = deepcopy( population[i] )
 					else:
 						doBackprop = False
-						if applyBackProp:
+						if applyBackProp and self.generations % self.backprop_every_generations == 0:
 							# uniformly randomly choose individuals to backprop
 							if self.uniform_k == 1 or random() <= self.uniform_k:
 								doBackprop = True
-						
 						
 						o = self.backprop_function.Backprop(o) if doBackprop else o
 						self.fitness_function.Evaluate(o)
