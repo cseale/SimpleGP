@@ -19,7 +19,6 @@ X, y = sklearn.datasets.load_diabetes( return_X_y=True )
 X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.5, random_state=42 )
 # Set fitness function
 fitness_function = SymbolicRegressionFitness( X_train, y_train )
-backprop_function = Backpropagation( X_train, y_train )
 
 # Set functions and terminals
 functions = [
@@ -37,6 +36,7 @@ for i in range(X.shape[1]):
 
 # Run GP
 # TODO: Put the simple GP into a loop such that we can run all experiments on AWS etc, and collect all the data
+backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.001 )
 sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size=100, max_generations=100)	# other parameters are optional
 sgp.Run()
 
