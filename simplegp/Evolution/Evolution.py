@@ -71,7 +71,7 @@ class SimpleGP:
 		# else:
 		return basename + log
 
-	def Run(self, applyBackProp):
+	def Run(self, applyBackProp = True):
 		# Create target Directory if don't exist
 		dirName = "experiments"
 		if not os.path.exists(dirName):
