@@ -62,7 +62,7 @@ class SimpleGP:
 		return must_terminate
 
 
-	def Run(self, applyBackProp):
+	def Run(self, applyBackProp=True):
 
 		self.start_time = time.time()
 
