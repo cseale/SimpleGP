@@ -22,6 +22,7 @@ Measure
 - [ ] Different initial population sizes
 - [ ] Different mutation probabilities
 - [ ] Tournament selection size
+- [ ] Subtree Size
 
 
 #### Optimise the gradient descent local search
