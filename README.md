@@ -31,7 +31,7 @@ Measure
 - [x] When to apply graident descent (every x generations)
 - [x] Different graident descent learning rates for different generations, maybe course vs fine grained
 - [x] Combinations of above (Just pass the corresponding parameters in defining backprop function)
-- [ ] Iterations of gradient descent, 2 levels, lower for everyone, and then higher for top k 
+- [x] Iterations of gradient descent, 2 levels, lower for everyone, and then higher for top k 
 
 
 #### Reoptimise solution with optimal graident descent params
