@@ -4,12 +4,13 @@ import math
 
 class Backpropagation:
 
-	def __init__( self, X_train, y_train, iters, learning_rate, decayFunction ):
+	def __init__( self, X_train, y_train, iters, learning_rate, decayFunction, override_iterations = None):
 		self.X_train = X_train
 		self.y_train = y_train
 		self.iterations = iters
 		self.learning_rate = learning_rate
 		self.decayFunction = decayFunction
+		self.override_iterations = self.iterations if override_iterations is None else override_iterations
 
 	def StepDecay(self, generation): # Halves the learning rate every 10 itertations
 		newLr = self.learning_rate * math.pow(0.5, math.floor(generation / 10))
@@ -22,13 +23,20 @@ class Backpropagation:
 	def NoDecay(self, generation):
 		return self.learning_rate
 
-	def Backprop( self, individual, generation): # Generation is passed for decaying learning rate.
+	def Backprop( self, individual, generation, override_iterations = False): # Generation is passed for decaying learning rate.
+
+		if override_iterations: # We want an increased number of iterations for this individual
+			itersToApply = self.override_iterations
+			if self.override_iterations == self.iterations:
+				print("Warning: Override iterations to be applied equals default iterations.")
+		else: # We don't want the above: just apply the default iterations
+			itersToApply = self.iterations
 		# assume worst fitness possible at start
 		previousFitness = float("inf")
 		previousIndividual = None
-
 		# backwards prop for certain number of iterations
-		for i in range(self.iterations):
+		for i in range(itersToApply):
+
 			# forward prop
 			output = individual.GetOutput( self.X_train )
 			mse = np.mean ( np.square( self.y_train - output ) )

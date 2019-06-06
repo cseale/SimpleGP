@@ -27,7 +27,7 @@ class SimpleGP:
                  tournament_size=4,
                  uniform_k=1,
                  backprop_every_generations = 1,
-                 backprop_selection_ratio = 1
+                 backprop_selection_ratio = 1,
             ):
         self.pop_size = pop_size
         self.backprop_function = backprop_function
@@ -119,6 +119,10 @@ class SimpleGP:
                         del o
                         o = deepcopy( population[i])
                     else:
+                        '''
+                        Apply backprop to all if uniform_k was not passed, otherwise apply to uniform_k percent.'
+                        Apply backprop every generation if backprop_every_generations is not passed, otherwise only do it every x gens
+                        '''
                         doBackprop = False
                         if applyBackProp and self.generations % self.backprop_every_generations == 0:
                             if self.uniform_k == 1 or random() <= self.uniform_k:
@@ -134,7 +138,7 @@ class SimpleGP:
                     # Unsorted, lowest toSelect fitness individuals, in linear time :)
                     top_k_percent = np.argpartition(population_fitness, 3)[:to_select]
                     for curr_top_k in top_k_percent:
-                        O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], self.generations)
+                        O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], self.generations, override_iterations = True)
                         self.fitness_function.Evaluate(O[curr_top_k]) # Re-evaluate fitness for coming tournament
 
                 PO = population+O

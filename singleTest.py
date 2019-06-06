@@ -44,8 +44,8 @@ numRep = 10 # number of repetitions
 # Set fitness function
 fitness_function = SymbolicRegressionFitness( X_train, y_train )
 # Run GP
-backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.1, decayFunction = Backpropagation.NoDecay)
-sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = 100, max_time = 180, backprop_selection_ratio = 1, backprop_every_generations = 20)	# other parameters are optional
+backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.1, decayFunction = Backpropagation.NoDecay, override_iterations = 20)
+sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = 100, max_time = 180, backprop_selection_ratio = 0.1, backprop_every_generations = 20)	# other parameters are optional
 sgp.Run(applyBackProp=True)
 
 # Print results
