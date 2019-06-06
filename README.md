@@ -27,7 +27,7 @@ Measure
 
 #### Optimise the gradient descent local search
 - [x] Uniformly randomly select individuals to do gradient descent
-- [x] Top k% of nodes (Implementation could be tricky because it requires another evalutaiont round) (just call individual.fitness, already computed)
+- [x] Top k% of nodes (Implementation could be tricky because it requires another evalutaiont round)
 - [x] When to apply graident descent (every x generations)
 - [x] Different graident descent learning rates for different generations, maybe course vs fine grained
 - [ ] Combinations of above
