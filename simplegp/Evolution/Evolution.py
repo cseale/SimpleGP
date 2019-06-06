@@ -133,13 +133,14 @@ class SimpleGP:
                     O.append(o)
 
                 if self.backprop_selection_ratio != 1: # Non-Default: Apparently, we want to select the top k%.
-                    population_fitness = np.array([population[curr].fitness for curr in range(len(population))])
-                    to_select = int(self.backprop_selection_ratio*len(population)) # Get the top k% fitnessboys
-                    # Unsorted, lowest toSelect fitness individuals, in linear time :)
-                    top_k_percent = np.argpartition(population_fitness, 3)[:to_select]
-                    for curr_top_k in top_k_percent:
-                        O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], self.generations, override_iterations = True)
-                        self.fitness_function.Evaluate(O[curr_top_k]) # Re-evaluate fitness for coming tournament
+                    if applyBackProp and self.generations % self.backprop_every_generations == 0:
+                        population_fitness = np.array([population[curr].fitness for curr in range(len(population))])
+                        to_select = int(self.backprop_selection_ratio*len(population)) # Get the top k% fitnessboys
+                        # Unsorted, lowest toSelect fitness individuals, in linear time :)
+                        top_k_percent = np.argpartition(population_fitness, 3)[:to_select]
+                        for curr_top_k in top_k_percent:
+                            O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], self.generations, override_iterations = True)
+                            self.fitness_function.Evaluate(O[curr_top_k]) # Re-evaluate fitness for coming tournament
 
                 PO = population+O
                 population = Selection.TournamentSelect( PO, len(population), tournament_size=self.tournament_size )
