@@ -1,19 +1,19 @@
 from copy import deepcopy
 import numpy as np
-from numpy.random import randint
 from numpy.random import random
+import numpy.random
 
 
 def GenerateRandomTree(functions, terminals, max_height, curr_height=0):
 
 	if curr_height == max_height:
-		idx = randint(len(terminals))
+		idx = numpy.random.randint(len(terminals))
 		n = deepcopy( terminals[idx] )
 	else:
 		if random() < 0.5:
-			n = deepcopy( terminals[randint(len(terminals))] )
+			n = deepcopy( terminals[numpy.random.randint(len(terminals))] )
 		else:
-			idx = randint( len(functions) )
+			idx = numpy.random.randint( len(functions) )
 			n = deepcopy( functions[idx] )
 			for i in range(n.arity):
 				c = GenerateRandomTree( functions, terminals, max_height, curr_height=curr_height + 1 )
@@ -30,7 +30,7 @@ def SubtreeMutation( individual, functions, terminals, max_height=4 ):
 
 	nodes = __GetCandidateNodesAtUniformRandomDepth( nodes )
 
-	to_replace = nodes[randint(len(nodes))]
+	to_replace = nodes[numpy.random.randint(len(nodes))]
 
 	if not to_replace.parent:
 		del individual
@@ -54,8 +54,8 @@ def SubtreeCrossover( individual, donor ):
 	nodes1 = __GetCandidateNodesAtUniformRandomDepth( nodes1 )
 	nodes2 = __GetCandidateNodesAtUniformRandomDepth( nodes2 )
 
-	to_swap1 = nodes1[ randint(len(nodes1)) ]
-	to_swap2 = deepcopy( nodes2[ randint(len(nodes2)) ] )	# we deep copy now, only the sutbree from parent2
+	to_swap1 = nodes1[ numpy.random.randint(len(nodes1)) ]
+	to_swap2 = deepcopy( nodes2[numpy.random.randint(len(nodes2)) ] )	# we deep copy now, only the sutbree from parent2
 
 	p1 = to_swap1.parent
 
@@ -71,7 +71,7 @@ def SubtreeCrossover( individual, donor ):
 def __GetCandidateNodesAtUniformRandomDepth( nodes ):
 
 	depths = np.unique( [x.GetDepth() for x in nodes] )
-	chosen_depth = depths[randint(len(depths))]
+	chosen_depth = depths[numpy.random.randint(len(depths))]
 	candidates = [x for x in nodes if x.GetDepth() == chosen_depth]
 
 	return candidates
