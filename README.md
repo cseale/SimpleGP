@@ -30,8 +30,8 @@ Measure
 - [x] Top k% of nodes (Implementation could be tricky because it requires another evalutaiont round)
 - [x] When to apply graident descent (every x generations)
 - [x] Different graident descent learning rates for different generations, maybe course vs fine grained
-- [ ] Combinations of above
-- [ ] Iterations of gradient descent, 2 levels, lower for everyone, and then higher for top k 
+- [x] Combinations of above (Just pass the corresponding parameters in defining backprop function)
+- [x] Iterations of gradient descent, 2 levels, lower for everyone, and then higher for top k 
 
 
 #### Reoptimise solution with optimal graident descent params
