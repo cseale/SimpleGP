@@ -26,7 +26,8 @@ class SimpleGP:
                  max_tree_size=100,
                  tournament_size=4,
                  uniform_k=1,
-                 backprop_every_generations = 1
+                 backprop_every_generations = 1,
+                 backprop_selection_ratio = 1
             ):
         self.pop_size = pop_size
         self.backprop_function = backprop_function
@@ -43,12 +44,14 @@ class SimpleGP:
         self.tournament_size = tournament_size
         self.generations = 0
         # for grid search
-        self.dirName = "" 
+        self.dirName = ""
         self.logName = ''
         # gradient descent params
-        self.uniform_k = 1
-        self.backprop_every_generations = 1
-        
+        self.uniform_k = uniform_k
+        self.backprop_every_generations = backprop_every_generations
+        self.backprop_selection_ratio = backprop_selection_ratio
+        assert backprop_selection_ratio <= 1, "backprop_selection_ratio should be leq 1."
+
     def __ShouldTerminate(self):
         must_terminate = False
         elapsed_time = time.time() - self.start_time
@@ -58,15 +61,15 @@ class SimpleGP:
             must_terminate = True
         elif self.max_time > 0 and elapsed_time >= self.max_time:
             must_terminate = True
-        
+
         if must_terminate:
             print('Terminating at\n\t',
-				self.generations, 'generations\n\t', self.fitness_function.evaluations, 
+				self.generations, 'generations\n\t', self.fitness_function.evaluations,
                 'evaluations\n\t', np.round(elapsed_time,2), 'seconds')
         return must_terminate
 
     def getFilename(self, run, backprop = False, iterationNum = 0):
-        basename = "maxtime" + str(run.max_time) + "_pop" + str(run.pop_size) + "_mr" + str(run.mutation_rate) + "_tour" + str(run.tournament_size) + "_maxHeight" + str(run.initialization_max_tree_height) + "_cr" + str(run.crossover_rate) 
+        basename = "maxtime" + str(run.max_time) + "_pop" + str(run.pop_size) + "_mr" + str(run.mutation_rate) + "_tour" + str(run.tournament_size) + "_maxHeight" + str(run.initialization_max_tree_height) + "_cr" + str(run.crossover_rate)
         log = ".txt"
 		# if backprop:
 		# 	# extension = "random" + str(run.random_k) + "top" + str(run.top_k) + "bpeverygen" + str(run.backprop_every_generations) + "lr" + str(run.learning_rate) + "toplr" + str(run.top_k_learning_rate)
@@ -82,26 +85,25 @@ class SimpleGP:
         if not os.path.exists(self.dirName):
             os.mkdir(self.dirName)
             print("Directory " , self.dirName ,  " Created ")
-		
+
         self.start_time = time.time()
 
         population = []
-        
+
         with open(self.dirName + "/" + self.getFilename(self, applyBackProp, iterationNum), "w+") as fp:
-            
+
             for i in range( self.pop_size):
-            
-                population.append(Variation.GenerateRandomTree( self.functions, self.terminals, 
+
+                population.append(Variation.GenerateRandomTree( self.functions, self.terminals,
                                                   self.initialization_max_tree_height ) )
-                '''
-                population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
-                '''
+
+                population[i] = self.backprop_function.Backprop(population[i], self.generations) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
-            
+
             fp.write("generations_elite-fitness_number-of-evaluations_time\r\n")
             print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
             fp.write(str(self.generations) + "_" + str(np.round(self.fitness_function.elite.fitness,3)) + "_" + str(self.fitness_function.evaluations) + "_" + str(time.time() - self.start_time) + "\r\n")
-                
+
             while not self.__ShouldTerminate():
 
                 O = []
@@ -117,18 +119,23 @@ class SimpleGP:
                         del o
                         o = deepcopy( population[i])
                     else:
-                        '''
-						doBackprop = False
-						if applyBackProp and self.generations % self.backprop_every_generations == 0:
-							# uniformly randomly choose individuals to backprop
-							if self.uniform_k == 1 or random() <= self.uniform_k:
-								doBackprop = True
-						
-						o = self.backprop_function.Backprop(o) if doBackprop else o
-                        '''
+                        doBackprop = False
+                        if applyBackProp and self.generations % self.backprop_every_generations == 0:
+                            if self.uniform_k == 1 or random() <= self.uniform_k:
+                                doBackprop = True
+                        o = self.backprop_function.Backprop(o, self.generations) if doBackprop else o
                         self.fitness_function.Evaluate(o)
 
                     O.append(o)
+
+                if self.backprop_selection_ratio != 1: # Non-Default: Apparently, we want to select the top k%.
+                    population_fitness = np.array([population[curr].fitness for curr in range(len(population))])
+                    to_select = int(self.backprop_selection_ratio*len(population)) # Get the top k% fitnessboys
+                    # Unsorted, lowest toSelect fitness individuals, in linear time :)
+                    top_k_percent = np.argpartition(population_fitness, 3)[:to_select]
+                    for curr_top_k in top_k_percent:
+                        O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], self.generations)
+                        self.fitness_function.Evaluate(O[curr_top_k]) # Re-evaluate fitness for coming tournament
 
                 PO = population+O
                 population = Selection.TournamentSelect( PO, len(population), tournament_size=self.tournament_size )
