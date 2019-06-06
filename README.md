@@ -27,9 +27,9 @@ Measure
 
 #### Optimise the gradient descent local search
 - [x] Uniformly randomly select individuals to do gradient descent
-- [ ] Top k% of nodes (Implementation could be tricky because it requires another evalutaiont round)
+- [x] Top k% of nodes (Implementation could be tricky because it requires another evalutaiont round)
 - [x] When to apply graident descent (every x generations)
-- [ ] Different graident descent learning rates for different generations, maybe course vs fine grained
+- [x] Different graident descent learning rates for different generations, maybe course vs fine grained
 - [ ] Combinations of above
 - [ ] Iterations of gradient descent, 2 levels, lower for everyone, and then higher for top k 
 
