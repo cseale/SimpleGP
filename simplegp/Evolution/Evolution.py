@@ -97,7 +97,7 @@ class SimpleGP:
                 population.append(Variation.GenerateRandomTree( self.functions, self.terminals,
                                                   self.initialization_max_tree_height ) )
 
-                population[i] = self.backprop_function.Backprop(population[i], self.generations) if applyBackProp else population[i]
+                population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
 
             fp.write("generations_elite-fitness_number-of-evaluations_time\r\n")
@@ -127,7 +127,7 @@ class SimpleGP:
                         if applyBackProp and self.generations % self.backprop_every_generations == 0:
                             if self.uniform_k == 1 or random() <= self.uniform_k:
                                 doBackprop = True
-                        o = self.backprop_function.Backprop(o, self.generations) if doBackprop else o
+                        o = self.backprop_function.Backprop(o) if doBackprop else o
                         self.fitness_function.Evaluate(o)
 
                     O.append(o)
@@ -139,7 +139,7 @@ class SimpleGP:
                         # Unsorted, lowest toSelect fitness individuals, in linear time :)
                         top_k_percent = np.argpartition(population_fitness, 3)[:to_select]
                         for curr_top_k in top_k_percent:
-                            O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], self.generations, override_iterations = True)
+                            O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], override_iterations = True)
                             self.fitness_function.Evaluate(O[curr_top_k]) # Re-evaluate fitness for coming tournament
 
                 PO = population+O
