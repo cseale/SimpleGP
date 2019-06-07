@@ -62,10 +62,10 @@ class SimpleGP:
         elif self.max_time > 0 and elapsed_time >= self.max_time:
             must_terminate = True
 
-        if must_terminate:
-            print('Terminating at\n\t',
-				self.generations, 'generations\n\t', self.fitness_function.evaluations,
-                'evaluations\n\t', np.round(elapsed_time,2), 'seconds')
+        # if must_terminate:
+        #     print('Terminating at\n\t',
+		# 		self.generations, 'generations\n\t', self.fitness_function.evaluations,
+        #         'evaluations\n\t', np.round(elapsed_time,2), 'seconds')
         return must_terminate
 
     def getFilename(self, run, backprop = False, iterationNum = 0):
@@ -101,7 +101,7 @@ class SimpleGP:
                 self.fitness_function.Evaluate(population[i])
 
             fp.write("generations_elite-fitness_number-of-evaluations_time\r\n")
-            print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
+            # print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
             fp.write(str(self.generations) + "_" + str(np.round(self.fitness_function.elite.fitness,3)) + "_" + str(self.fitness_function.evaluations) + "_" + str(time.time() - self.start_time) + "\r\n")
 
             while not self.__ShouldTerminate():
@@ -147,7 +147,7 @@ class SimpleGP:
 
                 self.generations = self.generations + 1
 
-                print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
+                # print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
 
                 fp.write(str(self.generations) + "_" + str(np.round(self.fitness_function.elite.fitness,3)) + "_" + str(self.fitness_function.evaluations) + "_" + str(time.time() - self.start_time) + "\r\n")
 
