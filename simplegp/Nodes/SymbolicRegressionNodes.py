@@ -11,7 +11,7 @@ class AddNode(Node):
         super(AddNode,self).__init__(arity=2)
 
     def __repr__(self):
-        return '+' + str(self.dw)
+        return '+' + str(self.weights)
 
     def GetOutput( self, X ):
         # Recursively compute output of the children
@@ -53,7 +53,7 @@ class SubNode(Node):
         super(SubNode,self).__init__(arity=2)
 
     def __repr__(self):
-        return '-' + str(self.dw)
+        return '-' + str(self.weights)
 
     def GetOutput( self, X ):
         X0 = self._children[0].GetOutput( X )
@@ -84,7 +84,7 @@ class MulNode(Node):
         super(MulNode,self).__init__(arity=2)
 
     def __repr__(self):
-        return '*' + str(self.dw)
+        return '*' + str(self.weights)
 
     def GetOutput( self, X ):
         X0 = self._children[0].GetOutput( X )
@@ -118,7 +118,7 @@ class DivNode(Node):
         super(DivNode,self).__init__(arity=2)
 
     def __repr__(self):
-        return '/' + str(self.dw)
+        return '/' + str(self.weights)
 
     def GetOutput( self, X ):
         X0 = self._children[0].GetOutput( X )
@@ -188,7 +188,7 @@ class SinNode(Node):
         super(SinNode,self).__init__(arity=1)
 
     def __repr__(self):
-        return 'sin' + str(self.dw)
+        return 'sin' + str(self.weights)
 
     def GetOutput( self, X ):
         X0 = self._children[0].GetOutput( X )
@@ -212,7 +212,7 @@ class CosNode(Node):
         super(CosNode,self).__init__(arity=1)
 
     def __repr__(self):
-        return 'cos' + str(self.dw)
+        return 'cos' + str(self.weights)
 
     def GetOutput( self, X ):
         X0 = self._children[0].GetOutput( X )
