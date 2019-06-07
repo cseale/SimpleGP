@@ -4,14 +4,6 @@ import math
 
 class Backpropagation:
 
-	def __init__( self, X_train, y_train, iters, learning_rate, decayFunction, override_iterations = None):
-		self.X_train = X_train
-		self.y_train = y_train
-		self.iterations = iters
-		self.learning_rate = learning_rate
-		self.decayFunction = decayFunction
-		self.override_iterations = self.iterations if override_iterations is None else override_iterations
-
 	def StepDecay(self, generation): # Halves the learning rate every 10 itertations
 		newLr = self.learning_rate * math.pow(0.5, math.floor(generation / 10))
 		return newLr
@@ -22,6 +14,14 @@ class Backpropagation:
 
 	def NoDecay(self, generation):
 		return self.learning_rate
+
+	def __init__( self, X_train, y_train, iters, learning_rate, decayFunction = NoDecay, override_iterations = None):
+		self.X_train = X_train
+		self.y_train = y_train
+		self.iterations = iters
+		self.learning_rate = learning_rate
+		self.decayFunction = decayFunction
+		self.override_iterations = self.iterations if override_iterations is None else override_iterations
 
 	def Backprop( self, individual, generation, override_iterations = False): # Generation is passed for decaying learning rate.
 
@@ -54,7 +54,7 @@ class Backpropagation:
 
 			# Decay the learning rate (function is passed in constructor, in test setup when defining backprop function)
 			newLr = self.decayFunction(self,generation)
-
+			print(newLr)
 			# do gradient descent
 			individual.GradientDescent(grad_mse, newLr)
 
