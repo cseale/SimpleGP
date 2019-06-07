@@ -36,14 +36,13 @@ for i in range(X.shape[1]):
 
 def createExperiments():
     # set up experiements
-    populationSizes = [64, 128, 256, 512, 1024, 2048, 4096, 8192]
+    populationSizes = [256, 512, 1024]
     mutationRates = [0, 0.001, 0.01, 0.1]
-    crossoverRates = [0.25, 0.5, 0.75, 1]
-    maxHeights = [2, 4, 8]
-    tourSize = [2, 4, 8]
-    #maxNumEval = [5000, 10000]
-    maxTime = [5, 10, 15, 20]
-    numRep = 10 # number of repetitions
+    crossoverRates = [0.75, 1]
+    maxHeights = [2, 4]
+    tourSize = [4, 8]
+    maxTime = [20]
+    numRep = 30 # number of repetitions
 
     experiments = []
     for i in range(numRep):
