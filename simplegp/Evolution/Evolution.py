@@ -84,7 +84,7 @@ class SimpleGP:
 
         if not os.path.exists(self.dirName):
             os.mkdir(self.dirName)
-            print("Directory " , self.dirName ,  " Created ")
+            # print("Directory " , self.dirName ,  " Created ")
 
         self.start_time = time.time()
 
