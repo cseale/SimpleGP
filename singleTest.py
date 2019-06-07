@@ -3,6 +3,9 @@ import numpy as np
 import sklearn.datasets
 from sklearn.model_selection import train_test_split
 from copy import deepcopy
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error, r2_score
+
 
 # Internal imports
 from simplegp.Nodes.BaseNode import Node
@@ -26,6 +29,13 @@ X, y = sklearn.datasets.load_diabetes( return_X_y=True )
 # Take a dataset split
 X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.5, random_state=42 )
 
+# regr = linear_model.LinearRegression()
+# regr.fit(X, y)
+# diabetes_y_pred = regr.predict(X)
+# print("Mean squared error: %.2f"
+#       % mean_squared_error( y, diabetes_y_pred))
+# print('Coefficients: \n', regr.coef_)
+
 # chosen function nodes
 terminals = [ EphemeralRandomConstantNode() ]	# use one ephemeral random constant node
 for i in range(X.shape[1]):
@@ -44,8 +54,8 @@ numRep = 10 # number of repetitions
 # Set fitness function
 fitness_function = SymbolicRegressionFitness( X_train, y_train )
 # Run GP
-backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.1, decayFunction = Backpropagation.NoDecay, override_iterations = 20)
-sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = 100, max_time = 180, backprop_selection_ratio = 0.1, backprop_every_generations = 20)	# other parameters are optional
+backprop_function = Backpropagation( X_train, y_train, iters=3, learning_rate=0.5, decayFunction = Backpropagation.NoDecay, override_iterations = 50)
+sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = 250, max_time = 30, backprop_selection_ratio = 1, backprop_every_generations = 1)	# other parameters are optional
 sgp.Run(applyBackProp=True)
 
 # Print results
