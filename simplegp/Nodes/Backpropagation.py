@@ -9,7 +9,7 @@ class Backpropagation:
 		return newLr
 
 	def ExpDecay(self, iteration): # Exponential Decay, -0.05 is hyperparam (res is 0.6 after 10 gens)
-		newLr = self.learning_rate * math.exp(-0.05 * 2)
+		newLr = self.learning_rate * math.exp(-0.05 * iteration)
 		return newLr
 
 	def NoDecay(self, iteration):
