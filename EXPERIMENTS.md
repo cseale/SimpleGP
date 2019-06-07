@@ -9,7 +9,7 @@
 - [ ] Plots for training vs test over a number of iterations and generations, etc
 
 ## Comparison Gotchas
-- [ ] Ensure that our comparisons are fair to Baseline SimpleGP (number of generations vs number of evaluations) (time is fixed)
+- [ ] Ensure that our comparisons are fair to Baseline SimpleGP (number of generations vs number of evaluations) (time is fixed) Careful here, maybe should be number of evals so that the experiments are not machine dependent
 - [ ] Cross-Validation needs to be done
 - [ ] Compare to actual functions found
 - [ ] Compare to linear regression model
