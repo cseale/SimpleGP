@@ -28,7 +28,7 @@ functions = [
 # Load regression dataset
 X, y = sklearn.datasets.load_diabetes( return_X_y=True )
 # Take a dataset split
-kf = KFold( n_splits=10, shuffle=True, random_state=42 )
+kf = KFold( n_splits=20, shuffle=True, random_state=42 )
 
 # chosen function nodes
 terminals = [ EphemeralRandomConstantNode() ]	# use one ephemeral random constant node
@@ -52,7 +52,7 @@ def createExperiments():
     main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time)
     
     # define parameters for other experiments here
-    backprop_every_generations = [1, 5, 10, 20, 50, 100]
+    backprop_every_generations = [1, 2, 4, 8, 16, 24]
     
     i = 0
     for train_index, test_index in kf.split(X):
@@ -72,7 +72,7 @@ def do_experiment(experiment):
     # Set fitness function
     fitness_function = SymbolicRegressionFitness( X_train, y_train )
     # Run GP
-    backprop_function = Backpropagation( X_train, y_train, iters=10, learning_rate=0.01, decayFunction = Backpropagation.NoDecay )
+    backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.01, decayFunction = Backpropagation.NoDecay )
     sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim, backprop_every_generations = backprop_every_generations)	# other parameters are optional
     _, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i)
 
