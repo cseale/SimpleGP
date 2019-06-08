@@ -1,6 +1,7 @@
 from statistics import mean, stdev
 import os
 import progressbar 
+import numpy as np
 
 def aggregateParams(experiment_dir):
     files = os.listdir(experiment_dir)
@@ -39,7 +40,7 @@ def aggregateParams(experiment_dir):
 
     # return top 5 mses
     results = []    
-    for i in range(20):
+    for i in range(np.min([20, len(all_mse)])):
         params = mse_to_params[all_mse[i]]
         (mean_mse, std_mse) = params_to_mse[params]
         print("Result " + str(i) + ": " +  str(params) + " with mean mse " + str(mean_mse) + ", std mse " + str(std_mse))
