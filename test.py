@@ -4,6 +4,8 @@ import sklearn.datasets
 from sklearn.model_selection import train_test_split
 from copy import deepcopy
 import multiprocessing as mp
+import progressbar
+import os
 
 # Internal imports
 from simplegp.Nodes.BaseNode import Node
@@ -11,6 +13,7 @@ from simplegp.Nodes.SymbolicRegressionNodes import *
 from simplegp.Nodes.Backpropagation import Backpropagation
 from simplegp.Fitness.FitnessFunction import SymbolicRegressionFitness
 from simplegp.Evolution.Evolution import SimpleGP
+
 
 np.random.seed(42)
 
@@ -32,32 +35,33 @@ terminals = [ EphemeralRandomConstantNode() ]	# use one ephemeral random constan
 for i in range(X.shape[1]):
 	terminals.append(FeatureNode(i))	# add a feature node for each feature
 
-
 def createExperiments():
-    # set up experiements
-    populationSizes = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-    mutationRates = [0, 0.001, 0.01, 0.1]
-    crossoverRates = [0.1, 0.25, 0.5, 0.75, 1]
-    maxHeights = [2, 4, 8]
-    tourSize = [2, 4, 8]
-    #maxNumEval = [5000, 10000]
-    maxTime = [5, 10, 15, 20, 25, 30]
-    numRep = 10 # number of repetitions
-
     experiments = []
-    for i in range(numRep):
-        for p in populationSizes:
-            for m in mutationRates:
-                for cr in crossoverRates:
-                    for mH in maxHeights:
-                        for tSize in tourSize:
-                            for tim in maxTime:
-                                experiments.append((i, p, m, cr, mH, tSize, tim))
+    
+    # number of runs
+    number_of_runs = 30
+    
+    # set up experiements
+    population = 512
+    mutation_rate = 0.001
+    crossover_rate = 1
+    max_height = 2
+    t_size = 8
+    max_time = 20
+    numRep = 30 # number of repetitions
+    main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time)
+    
+    # define parameters for other experiments here
+    extra_parameters = ()
+    
+    for i in range(number_of_runs):
+        experiments.append((i, main_ga_parameters, extra_parameters))
+   
     return experiments
 
 
-def doExperiment(experiment):
-    (i, p, m, cr, mH, tSize, tim) = experiment
+def do_experiment(experiment):
+    i, (p, m, cr, mH, tSize, tim), _ = experiment
     # Set fitness function
     fitness_function = SymbolicRegressionFitness( X_train, y_train )
     # Run GP
@@ -82,8 +86,17 @@ def doExperiment(experiment):
                     '\n\tRsquared:'+ str(np.round(1.0 - test_mse / np.var(y_test),3)) + "\n")
         fp.write(runtime)
 
-
 if __name__ == '__main__':
+    dir_name = "experiments"
+
+    if not os.path.exists(dir_name):
+        os.mkdir(dir_name)
+    
     e = createExperiments()
     pool = mp.Pool(mp.cpu_count())
-    pool.map(doExperiment, e)
+
+    print("running on " + str(mp.cpu_count()) + " cores")
+    
+    with progressbar.ProgressBar(max_value=len(e)) as bar:
+        for i, _ in enumerate(pool.imap_unordered(do_experiment, e), 1):
+            bar.update(i)

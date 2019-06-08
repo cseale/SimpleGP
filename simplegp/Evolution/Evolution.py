@@ -62,10 +62,10 @@ class SimpleGP:
         elif self.max_time > 0 and elapsed_time >= self.max_time:
             must_terminate = True
 
-        if must_terminate:
-            print('Terminating at\n\t',
-				self.generations, 'generations\n\t', self.fitness_function.evaluations,
-                'evaluations\n\t', np.round(elapsed_time,2), 'seconds')
+        # if must_terminate:
+        #     print('Terminating at\n\t',
+		# 		self.generations, 'generations\n\t', self.fitness_function.evaluations,
+        #         'evaluations\n\t', np.round(elapsed_time,2), 'seconds')
         return must_terminate
 
     def getFilename(self, run, backprop = False, iterationNum = 0):
@@ -82,10 +82,6 @@ class SimpleGP:
 		# Create target Directory if don't exist
         self.dirName = "experiments"
 
-        if not os.path.exists(self.dirName):
-            os.mkdir(self.dirName)
-            print("Directory " , self.dirName ,  " Created ")
-
         self.start_time = time.time()
 
         population = []
@@ -97,11 +93,11 @@ class SimpleGP:
                 population.append(Variation.GenerateRandomTree( self.functions, self.terminals,
                                                   self.initialization_max_tree_height ) )
 
-                population[i] = self.backprop_function.Backprop(population[i], self.generations) if applyBackProp else population[i]
+                population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
 
             fp.write("generations_elite-fitness_number-of-evaluations_time\r\n")
-            print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
+            # print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
             fp.write(str(self.generations) + "_" + str(np.round(self.fitness_function.elite.fitness,3)) + "_" + str(self.fitness_function.evaluations) + "_" + str(time.time() - self.start_time) + "\r\n")
 
             while not self.__ShouldTerminate():
@@ -127,7 +123,7 @@ class SimpleGP:
                         if applyBackProp and self.generations % self.backprop_every_generations == 0:
                             if self.uniform_k == 1 or random() <= self.uniform_k:
                                 doBackprop = True
-                        o = self.backprop_function.Backprop(o, self.generations) if doBackprop else o
+                        o = self.backprop_function.Backprop(o) if doBackprop else o
                         self.fitness_function.Evaluate(o)
 
                     O.append(o)
@@ -139,7 +135,7 @@ class SimpleGP:
                         # Unsorted, lowest toSelect fitness individuals, in linear time :)
                         top_k_percent = np.argpartition(population_fitness, 3)[:to_select]
                         for curr_top_k in top_k_percent:
-                            O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], self.generations, override_iterations = True)
+                            O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], override_iterations = True)
                             self.fitness_function.Evaluate(O[curr_top_k]) # Re-evaluate fitness for coming tournament
 
                 PO = population+O
@@ -147,7 +143,7 @@ class SimpleGP:
 
                 self.generations = self.generations + 1
 
-                print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
+                # print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
 
                 fp.write(str(self.generations) + "_" + str(np.round(self.fitness_function.elite.fitness,3)) + "_" + str(self.fitness_function.evaluations) + "_" + str(time.time() - self.start_time) + "\r\n")
 

@@ -1,0 +1,12 @@
+generations_elite-fitness_number-of-evaluations_time
+0_6290.029_4096_2.8941357135772705
+1_6290.029_8190_8.903029918670654
+Function found (3nodes ):
+	[/[ 0.24196227 -1.91328024 -1.72491783 -0.56228753], x4, -0.324]
+Training
+	MSE:6290.029
+	Rsquared:-0.02
+Test:
+	MSE:5807.821
+	Rsquared:-0.02
+8.903137683868408
