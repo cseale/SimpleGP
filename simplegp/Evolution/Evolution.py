@@ -82,10 +82,6 @@ class SimpleGP:
 		# Create target Directory if don't exist
         self.dirName = "experiments"
 
-        if not os.path.exists(self.dirName):
-            os.mkdir(self.dirName)
-            # print("Directory " , self.dirName ,  " Created ")
-
         self.start_time = time.time()
 
         population = []

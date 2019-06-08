@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from copy import deepcopy
 import multiprocessing as mp
 import progressbar
+import os
 
 # Internal imports
 from simplegp.Nodes.BaseNode import Node
@@ -35,29 +36,32 @@ for i in range(X.shape[1]):
 	terminals.append(FeatureNode(i))	# add a feature node for each feature
 
 def createExperiments():
-    # set up experiements
-    populationSizes = [256, 512, 1024]
-    mutationRates = [0, 0.001, 0.01, 0.1]
-    crossoverRates = [0.75, 1]
-    maxHeights = [2, 4]
-    tourSize = [4, 8]
-    maxTime = [20]
-    numRep = 30 # number of repetitions
-
     experiments = []
-    for i in range(numRep):
-        for p in populationSizes:
-            for m in mutationRates:
-                for cr in crossoverRates:
-                    for mH in maxHeights:
-                        for tSize in tourSize:
-                            for tim in maxTime:
-                                experiments.append((i, p, m, cr, mH, tSize, tim))
+    
+    # number of runs
+    number_of_runs = 30
+    
+    # set up experiements
+    population = 512
+    mutation_rate = 0.001
+    crossover_rate = 1
+    max_height = 2
+    t_size = 8
+    max_time = 20
+    numRep = 30 # number of repetitions
+    main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time)
+    
+    # define parameters for other experiments here
+    extra_parameters = ()
+    
+    for i in range(number_of_runs):
+        experiments.append((i, main_ga_parameters, extra_parameters))
+   
     return experiments
 
 
 def do_experiment(experiment):
-    (i, p, m, cr, mH, tSize, tim) = experiment
+    i, (p, m, cr, mH, tSize, tim), _ = experiment
     # Set fitness function
     fitness_function = SymbolicRegressionFitness( X_train, y_train )
     # Run GP
@@ -83,6 +87,11 @@ def do_experiment(experiment):
         fp.write(runtime)
 
 if __name__ == '__main__':
+    dir_name = "experiments"
+
+    if not os.path.exists(dir_name):
+        os.mkdir(dir_name)
+    
     e = createExperiments()
     pool = mp.Pool(mp.cpu_count())
 
