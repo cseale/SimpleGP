@@ -74,13 +74,13 @@ class SimpleGP:
         extension = ""
 		
         if self.backprop_every_generations != 1:
-            extension = extension + "_bpeverygen" + self.backprop_every_generations 
+            extension = extension + "_bpeverygen" + str(self.backprop_every_generations) 
             
         if self.uniform_k != 1:
-            extension = extension + "_uniform" + self.uniform_k
+            extension = extension + "_uniform" + str(self.uniform_k)
             
         if self.backprop_selection_ratio != 1:
-            extension = extension + "_bpratio" + self.backprop_selection_ratio
+            extension = extension + "_bpratio" + str(self.backprop_selection_ratio)
         
         self.logName = basename + extension + "_" + str(iterationNum) + log
         return self.logName
