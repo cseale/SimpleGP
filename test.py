@@ -72,7 +72,7 @@ def do_experiment(experiment):
     # Set fitness function
     fitness_function = SymbolicRegressionFitness( X_train, y_train )
     # Run GP
-    backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.001, decayFunction = Backpropagation.NoDecay )
+    backprop_function = Backpropagation( X_train, y_train, iters=10, learning_rate=0.01, decayFunction = Backpropagation.NoDecay )
     sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim, backprop_every_generations = backprop_every_generations)	# other parameters are optional
     _, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i)
 
