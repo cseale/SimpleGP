@@ -12,7 +12,7 @@ class BackpropTests(unittest.TestCase):
     def test_backprop(self):
         X = np.random.randint(0,10,size=(2000,2)) #Generate random 2-dimensional data
         y = [2 * i[0] + 3 + 4*i[1] + 6 for i in X] #Apply function
-        backprop = Backpropagation(X, y)
+        backprop = Backpropagation(X, y, learning_rate=0.01, iters=500)
         fitness_evaluator = SymbolicRegressionFitness(X, y)
 
         add_node = AddNode() # Root node

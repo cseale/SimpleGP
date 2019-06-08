@@ -15,7 +15,7 @@ class Backpropagation:
 	def NoDecay(self, iteration):
 		return self.learning_rate
 
-	def __init__( self, X_train, y_train, iters, learning_rate, decayFunction = NoDecay, override_iterations = None ):
+	def __init__( self, X_train, y_train, iters=5, learning_rate=0.01, decayFunction = NoDecay, override_iterations = None ):
 		self.X_train = X_train
 		self.y_train = y_train
 		self.iterations = iters
