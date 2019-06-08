@@ -100,14 +100,6 @@ log_file.close()
 filepath = "./../logs/learning_rate_and_iterations_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
 
-
-kanker = [df.iloc[0]["evals"]] + [df.iloc[i]["evals"] - df.iloc[i-1]["evals"] for i in range (1, len(df))]
-df['newEvals'] = kanker
-
-# temp
-for i in range(1, 90):
-    df.iloc[i]["evals"] = df.iloc[i].evals - df.iloc[i-1].evals
-
 # Plot figures to observe the influence of the amount of GD iterations
 for i in range(1, 10):
     evals = df[df.iterations == i].newEvals

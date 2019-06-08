@@ -73,6 +73,9 @@ class SimpleGP:
         log = ".txt"
         extension = ""
 		
+        if backprop:
+            extension += f"_lr{self.backprop_function.learning_rate}_iters{self.backprop_function.iterations}"
+
         if self.backprop_every_generations != 1:
             extension = extension + "_bpeverygen" + str(self.backprop_every_generations) 
             
@@ -87,7 +90,7 @@ class SimpleGP:
 
     def Run(self, applyBackProp = True, iterationNum = 0):
 		# Create target Directory if don't exist
-        self.dirName = "./logs"
+        self.dirName = "experiments"
 
         self.start_time = time.time()
 
