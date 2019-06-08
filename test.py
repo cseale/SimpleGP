@@ -1,7 +1,7 @@
 # Libraries
 import numpy as np
 import sklearn.datasets
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 from copy import deepcopy
 import multiprocessing as mp
 import progressbar
@@ -28,7 +28,7 @@ functions = [
 # Load regression dataset
 X, y = sklearn.datasets.load_diabetes( return_X_y=True )
 # Take a dataset split
-X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.5, random_state=42 )
+kf = KFold( n_splits=10, shuffle=True, random_state=42 )
 
 # chosen function nodes
 terminals = [ EphemeralRandomConstantNode() ]	# use one ephemeral random constant node
@@ -54,15 +54,21 @@ def createExperiments():
     # define parameters for other experiments here
     backprop_every_generations = [1, 5, 10, 20, 50, 100]
     
-    for i in range(number_of_runs):
+    i = 0
+    for train_index, test_index in kf.split(X):
+        i += 1
+        indices = (i, train_index, test_index)
         for every_gen in backprop_every_generations
-            experiments.append((i, main_ga_parameters, every_gen)
+            experiments.append((indices, main_ga_parameters, every_gen)
    
     return experiments
 
 
 def do_experiment(experiment):
-    i, (p, m, cr, mH, tSize, tim), backprop_every_generations = experiment
+    (i, train_index, test_index), (p, m, cr, mH, tSize, tim), backprop_every_generations = experiment
+    # Cross validation
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
     # Set fitness function
     fitness_function = SymbolicRegressionFitness( X_train, y_train )
     # Run GP
