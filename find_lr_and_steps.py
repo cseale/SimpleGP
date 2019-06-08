@@ -41,12 +41,30 @@ best_fitness = float("inf")
 log_file = open("./logs/learning_rate_and_iterations_experiments.txt", "w")
 log_file.write("learning_rate iterations train_mse test_mse runtime evals\n")
 
+# Optimal parameters for simpleGP symbolic regression without backprop
+tour_size = 8
+max_height = 2
+cross_rate = 1.0
+mut_rate = 0.001
+pop_size = 512
+max_time = 20
+
 for lr in learning_rates:
     for steps in steps_vals:
         avg_fitness = 0
         for i in range(10):  # Run each experiment 10 times, because of stochasticity
             backprop_function = Backpropagation(X_train, y_train, iters=steps, learning_rate=lr)
-            sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size=100, max_generations=100, mutation_rate=0.5, crossover_rate=0.5)	# other parameters are optional
+            sgp = SimpleGP(fitness_function,
+                           backprop_function,
+                           functions,
+                           terminals,
+                           pop_size=pop_size,
+                           max_generations=100,
+                           mutation_rate=mut_rate,
+                           crossover_rate=cross_rate,
+                           initialization_max_tree_height=max_height,
+                           max_time=max_time,
+                           tournament_size=tour_size)
             _, _, _, runtime = sgp.Run(applyBackProp=True)
 
             # Log results
