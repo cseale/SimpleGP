@@ -71,11 +71,18 @@ class SimpleGP:
     def getFilename(self, run, backprop = False, iterationNum = 0):
         basename = "maxtime" + str(run.max_time) + "_pop" + str(run.pop_size) + "_mr" + str(run.mutation_rate) + "_tour" + str(run.tournament_size) + "_maxHeight" + str(run.initialization_max_tree_height) + "_cr" + str(run.crossover_rate)
         log = ".txt"
-		# if backprop:
-		# 	# extension = "random" + str(run.random_k) + "top" + str(run.top_k) + "bpeverygen" + str(run.backprop_every_generations) + "lr" + str(run.learning_rate) + "toplr" + str(run.top_k_learning_rate)
-		# 	# return basename + extension + log
-		# else:
-        self.logName = basename + "_" + str(iterationNum) + log
+        extension = ""
+		
+        if self.backprop_every_generations != 1:
+            extension = extension + "_bpeverygen" + self.backprop_every_generations 
+            
+        if self.uniform_k != 1:
+            extension = extension + "_uniform" + self.uniform_k
+            
+        if self.backprop_selection_ratio != 1:
+            extension = extension + "_bpratio" + self.backprop_selection_ratio
+        
+        self.logName = basename + extension + "_" + str(iterationNum) + log
         return self.logName
 
     def Run(self, applyBackProp = True, iterationNum = 0):
