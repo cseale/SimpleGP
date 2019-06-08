@@ -52,21 +52,22 @@ def createExperiments():
     main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time)
     
     # define parameters for other experiments here
-    extra_parameters = ()
+    backprop_every_generations = [1, 5, 10, 20, 50, 100]
     
     for i in range(number_of_runs):
-        experiments.append((i, main_ga_parameters, extra_parameters))
+        for every_gen in backprop_every_generations
+            experiments.append((i, main_ga_parameters, every_gen)
    
     return experiments
 
 
 def do_experiment(experiment):
-    i, (p, m, cr, mH, tSize, tim), _ = experiment
+    i, (p, m, cr, mH, tSize, tim), backprop_every_generations = experiment
     # Set fitness function
     fitness_function = SymbolicRegressionFitness( X_train, y_train )
     # Run GP
     backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.001, decayFunction = Backpropagation.NoDecay )
-    sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim)	# other parameters are optional
+    sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim, backprop_every_generations = backprop_every_generations)	# other parameters are optional
     _, _, _, runtime = sgp.Run(applyBackProp=False, iterationNum = i)
 
     # Print results
