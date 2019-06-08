@@ -58,8 +58,8 @@ def createExperiments():
     for train_index, test_index in kf.split(X):
         i += 1
         indices = (i, train_index, test_index)
-        for every_gen in backprop_every_generations
-            experiments.append((indices, main_ga_parameters, every_gen)
+        for every_gen in backprop_every_generations:
+            experiments.append((indices, main_ga_parameters, every_gen))
    
     return experiments
 
@@ -74,7 +74,7 @@ def do_experiment(experiment):
     # Run GP
     backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.001, decayFunction = Backpropagation.NoDecay )
     sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim, backprop_every_generations = backprop_every_generations)	# other parameters are optional
-    _, _, _, runtime = sgp.Run(applyBackProp=False, iterationNum = i)
+    _, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i)
 
     # Print results
     with open(sgp.dirName +"/" + sgp.logName, "a") as fp:
