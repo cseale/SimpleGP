@@ -36,8 +36,7 @@ for i in range(X.shape[1]):
 # Learning rate 0.01 works well in our unit test, so we freeze it at that and
 # try multiple values of iters for that.
 steps_vals = range(1, 10)
-# learning_rates = [math.pow(10, i) for i in range(-5, 1)]
-learning_rates = [0.01]
+learning_rates = [math.pow(10, i) for i in range(-5, 1)]
 best_steps_val = -1
 best_fitness = float("inf")
 
@@ -101,15 +100,23 @@ log_file.close()
 filepath = "./../logs/learning_rate_and_iterations_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
 
+
+kanker = [df.iloc[0]["evals"]] + [df.iloc[i]["evals"] - df.iloc[i-1]["evals"] for i in range (1, len(df))]
+df['newEvals'] = kanker
+
 # temp
-for i in range(2, 90):
-    df.iloc[i].evals = df.iloc[i].evals - df.iloc[i-1].evals
+for i in range(1, 90):
+    df.iloc[i]["evals"] = df.iloc[i].evals - df.iloc[i-1].evals
 
 # Plot figures to observe the influence of the amount of GD iterations
-for i in range(10):
-    evals = df[df.iterations == i].evals
+for i in range(1, 10):
+    evals = df[df.iterations == i].newEvals
     fitness = df[df.iterations == i].test_mse
-    plt.scatter(evals, fitness, label=i)
+    plt.scatter(evals, fitness, label=f"{i} iterations")
 plt.alex = plt.legend
 plt.alex()
+plt.xlabel("Evaluations")
+plt.ylabel("MSE on the test set")
+plt.title("Evaluations ~ fitness for different amounts of backpropagation iterations")
+plt.savefig("./../figs/evals_vs_fitness_for_amnt_iterations_with_lr=0.01.png")
 plt.show()
