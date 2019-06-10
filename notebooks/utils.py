@@ -3,11 +3,13 @@ import os
 import progressbar 
 import re
 
-def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, allStats = False):
+def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, 
+                    allStats = False):
     '''
-    valType: which value to aggregate over: "test_mse", "numGen", "tree_size", "train_mse"
+    valType: which value to aggregate over: "test_mse", "numGen", "tree_size", 
+            "train_mse", "diff_mse"
     printNum: number of mean mses to print
-    allStats: whether to return also the test mse and file name of each single run
+    allStats: whether to return also the value and file name of each single run
     '''
     files = os.listdir(experiment_dir)
     
@@ -16,7 +18,7 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, allStat
     all_fileValues = []
     all_files = []
     
-    # aggregate mse
+    # aggregate value
     with progressbar.ProgressBar(max_value=len(files)) as bar:
         for i, f in enumerate(files):
             key = get_key(f)
@@ -31,6 +33,8 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, allStat
                 val = parse_treeSize(d[2])
             elif valType == "train_mse": # get final training MSE
                 val = parse_mse(d[-6])
+            elif valType == "diff_mse": # difference between train and test MSE
+                val = parse_mse(d[-3]) - parse_mse(d[-6])
             all_fileValues.append(val)
             all_files.append(f)
 
@@ -40,7 +44,7 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, allStat
             params_to_val[key].append(val)
             bar.update(i)
                 
-    # flip and sort MSEs
+    # flip and sort values
     all_val = []
     if valType == "numGen":
         name = "numGen"
@@ -48,6 +52,8 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, allStat
         name = "test MSE"
     elif valType == "train_mse":
         name = "train MSE"
+    elif valType == "diff_mse":
+        name = "test minus train MSE"
     else:
         name = "tree size"
     for params in params_to_val:
@@ -62,14 +68,14 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, allStat
                  
     all_val.sort()
 
-    # return top mses
+    # return top values
     results = []    
     for i in range(len(all_val)):
         params = val_to_params[all_val[i]]
         (mean_val, std_val) = params_to_val[params]
         if i < printNum:
             print("Result " + str(i) + ": " +  str(params), "with mean", 
-                  name, mean_val, ",", "std", name, std_val)
+                  name, mean_val, "-", "std", name, std_val)
         results.append(params)
             
     if allStats:
