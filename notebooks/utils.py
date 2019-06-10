@@ -115,6 +115,3 @@ def file_read_from_tail(fname,lines):
                                 data.extend(f.readlines())
                                 if len(data) >= lines or f.tell() == 0:
                                         return data[-lines:]
-
-res = file_read_from_tail("C:/Users/nele2/Desktop/SimpleGP/experiments_numInd_noInitial_genIter\maxtime20_pop512_mr0.001_tour8_maxHeight2_cr1__topK0.1_unK-1_gen1_lr0.001_it1_oIt1_3.txt", 11)
-o = parse_treeSize(res[2])
