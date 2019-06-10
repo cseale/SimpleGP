@@ -3,11 +3,17 @@ import os
 import progressbar 
 import numpy as np
 
-def aggregateParams(experiment_dir):
+def aggregateParams(experiment_dir, printNum = 20, allStats = False):
+    '''
+    printNum: number of mean mses to print
+    allStats: whether to return also the test mse and file name of each single run
+    '''
     files = os.listdir(experiment_dir)
     
     mse_to_params = {}
     params_to_mse = {}
+    all_vals = []
+    all_files = []
     
     # aggregate mse
     with progressbar.ProgressBar(max_value=len(files)) as bar:
@@ -17,6 +23,8 @@ def aggregateParams(experiment_dir):
             if d == None:
                 continue
             mse = parse_mse(d[0])
+            all_vals.append(mse)
+            all_files.append(f)
 
             if key not in params_to_mse:
                 params_to_mse[key] = []
@@ -38,16 +46,20 @@ def aggregateParams(experiment_dir):
                  
     all_mse.sort()
 
-    # return top 5 mses
+    # return top mses
     results = []    
-    for i in range(np.min([20, len(all_mse)])):
+    for i in range(len(all_mse)):
         params = mse_to_params[all_mse[i]]
         (mean_mse, std_mse) = params_to_mse[params]
-        print("Result " + str(i) + ": " +  str(params) + " with mean mse " + str(mean_mse) + ", std mse " + str(std_mse))
+        if i < printNum:
+            print("Result " + str(i) + ": " +  str(params) + " with mean mse " + str(mean_mse) + ", std mse " + str(std_mse))
         results.append(params)
             
-    return results, params_to_mse, mse_to_params, all_mse
-
+    if allStats:
+        return results, params_to_mse, mse_to_params, all_mse, all_files, all_vals
+    else:
+        return results, params_to_mse, mse_to_params, all_mse
+    
 def parse_mse(line):
     mse = float(line.strip()[4:])
     return mse
