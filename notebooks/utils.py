@@ -1,68 +1,91 @@
 from statistics import mean, stdev
 import os
 import progressbar 
-import numpy as np
+import re
 
-def aggregateParams(experiment_dir, printNum = 20, allStats = False):
+def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20, allStats = False):
     '''
+    valType: which value to aggregate over: "test_mse", "numGen", "tree_size", "train_mse"
     printNum: number of mean mses to print
     allStats: whether to return also the test mse and file name of each single run
     '''
     files = os.listdir(experiment_dir)
     
-    mse_to_params = {}
-    params_to_mse = {}
-    all_vals = []
+    val_to_params = {}
+    params_to_val = {}
+    all_fileValues = []
     all_files = []
     
     # aggregate mse
     with progressbar.ProgressBar(max_value=len(files)) as bar:
         for i, f in enumerate(files):
             key = get_key(f)
-            d = file_read_from_tail(experiment_dir + f,3)
+            d = file_read_from_tail(experiment_dir + f, 11)
             if d == None:
                 continue
-            mse = parse_mse(d[0])
-            all_vals.append(mse)
+            if valType == "numGen": # get number of generations
+                val = parse_numGen(d[0])
+            elif valType == "test_mse": # get test MSE
+                val = parse_mse(d[-3])
+            elif valType == "tree_size": # get final tree size
+                val = parse_treeSize(d[2])
+            elif valType == "train_mse": # get final training MSE
+                val = parse_mse(d[-6])
+            all_fileValues.append(val)
             all_files.append(f)
 
-            if key not in params_to_mse:
-                params_to_mse[key] = []
+            if key not in params_to_val:
+                params_to_val[key] = []
 
-            params_to_mse[key].append(mse)
+            params_to_val[key].append(val)
             bar.update(i)
                 
-    # flip and sort mses
-    all_mse = []
-    for params in params_to_mse:
+    # flip and sort MSEs
+    all_val = []
+    if valType == "numGen":
+        name = "numGen"
+    elif valType == "test_mse":
+        name = "test MSE"
+    elif valType == "train_mse":
+        name = "train MSE"
+    else:
+        name = "tree size"
+    for params in params_to_val:
         # get means and standard deviations
-        mean_mse = mean(params_to_mse[params])
-        std_mse = stdev(params_to_mse[params])
+        mean_val = mean(params_to_val[params])
+        std_val = stdev(params_to_val[params])
         # reassign
-        params_to_mse[params] = (mean_mse, std_mse)
+        params_to_val[params] = (mean_val, std_val)
         # sort means
-        all_mse.append(mean_mse)
-        mse_to_params[mean_mse] = params
+        all_val.append(mean_val)
+        val_to_params[mean_val] = params
                  
-    all_mse.sort()
+    all_val.sort()
 
     # return top mses
     results = []    
-    for i in range(len(all_mse)):
-        params = mse_to_params[all_mse[i]]
-        (mean_mse, std_mse) = params_to_mse[params]
+    for i in range(len(all_val)):
+        params = val_to_params[all_val[i]]
+        (mean_val, std_val) = params_to_val[params]
         if i < printNum:
-            print("Result " + str(i) + ": " +  str(params) + " with mean mse " + str(mean_mse) + ", std mse " + str(std_mse))
+            print("Result " + str(i) + ": " +  str(params), "with mean", 
+                  name, mean_val, ",", "std", name, std_val)
         results.append(params)
             
     if allStats:
-        return results, params_to_mse, mse_to_params, all_mse, all_files, all_vals
+        return results, params_to_val, val_to_params, all_val, all_files, all_fileValues
     else:
-        return results, params_to_mse, mse_to_params, all_mse
+        return results, params_to_val, val_to_params, all_val
     
 def parse_mse(line):
     mse = float(line.strip()[4:])
     return mse
+
+def parse_numGen(line):
+    return int(line.split("_")[0])
+
+def parse_treeSize(line):
+    return int(re.findall(r'\d+', line)[0])
 
 def get_key(f):
     k = f[:-6]
@@ -86,3 +109,6 @@ def file_read_from_tail(fname,lines):
                                 data.extend(f.readlines())
                                 if len(data) >= lines or f.tell() == 0:
                                         return data[-lines:]
+
+res = file_read_from_tail("C:/Users/nele2/Desktop/SimpleGP/experiments_numInd_noInitial_genIter\maxtime20_pop512_mr0.001_tour8_maxHeight2_cr1__topK0.1_unK-1_gen1_lr0.001_it1_oIt1_3.txt", 11)
+o = parse_treeSize(res[2])
