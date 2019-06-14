@@ -21,3 +21,5 @@ class SymbolicRegressionFitness:
 		if not self.elite or individual.fitness < self.elite.fitness:
 			del self.elite
 			self.elite = deepcopy(individual)
+		return individual.fitness
+    

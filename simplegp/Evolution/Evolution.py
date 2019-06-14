@@ -103,9 +103,7 @@ class SimpleGP:
                 population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
 
-            fp.write("generations_elite-fitness_number-of-evaluations_time\r\n")
-            # print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
-            fp.write(str(self.generations) + "_" + str(np.round(self.fitness_function.elite.fitness,3)) + "_" + str(self.fitness_function.evaluations) + "_" + str(time.time() - self.start_time) + "\r\n")
+            fp.write("generation, individual, diff_after_backprop\r\n")
 
             while not self.__ShouldTerminate():
 
@@ -127,11 +125,13 @@ class SimpleGP:
                         Apply backprop every generation if backprop_every_generations is not passed, otherwise only do it every x gens
                         '''
                         doBackprop = False
+                        before = self.fitness_function.Evaluate(o)            
                         if applyBackProp and self.generations % self.backprop_every_generations == 0:
                             if self.uniform_k == 1 or random() <= self.uniform_k:
                                 doBackprop = True
                         o = self.backprop_function.Backprop(o) if doBackprop else o
-                        self.fitness_function.Evaluate(o)
+                        after = self.fitness_function.Evaluate(o)
+                        fp.write(str(self.generations) + "," + str(i) + "," + str(before - after) + "\r\n")
 
                     O.append(o)
 
@@ -149,9 +149,5 @@ class SimpleGP:
                 population = Selection.TournamentSelect( PO, len(population), tournament_size=self.tournament_size )
 
                 self.generations = self.generations + 1
-
-                # print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
-
-                fp.write(str(self.generations) + "_" + str(np.round(self.fitness_function.elite.fitness,3)) + "_" + str(self.fitness_function.evaluations) + "_" + str(time.time() - self.start_time) + "\r\n")
 
         return self.generations, np.round(self.fitness_function.elite.fitness,3), self.fitness_function.evaluations, str(time.time() - self.start_time)

@@ -71,9 +71,9 @@ def do_experiment(experiment):
     # Set fitness function
     fitness_function = SymbolicRegressionFitness( X_train, y_train )
     # Run GP
-    backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.001, decayFunction = Backpropagation.NoDecay )
+    backprop_function = Backpropagation( X_train, y_train, iters=10, learning_rate=0.001, decayFunction = Backpropagation.NoDecay )
     sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim)	# other parameters are optional
-    _, _, _, runtime = sgp.Run(applyBackProp=False, iterationNum = i)
+    _, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i)
 
     # Print results
     with open(sgp.dirName +"/" + sgp.logName, "a") as fp:
@@ -81,16 +81,16 @@ def do_experiment(experiment):
         # Show the evolved function
         final_evolved_function = fitness_function.elite
         nodes_final_evolved_function = final_evolved_function.GetSubtree()
-        fp.write('Function found (' +str(len(nodes_final_evolved_function)) + 'nodes ):\n\t' + str(nodes_final_evolved_function) + "\n")
-        # Print results for training set
-        fp.write('Training\n\tMSE:'+ str(np.round(final_evolved_function.fitness,3)) +
-                    '\n\tRsquared:' + str(np.round(1.0 - final_evolved_function.fitness / np.var(y_train),3)) + "\n")
-        # Re-evaluate the evolved function on the test set
-        test_prediction = final_evolved_function.GetOutput( X_test )
-        test_mse = np.mean(np.square( y_test - test_prediction ))
-        fp.write('Test:\n\tMSE:' + str(np.round( test_mse, 3)) +
-                    '\n\tRsquared:'+ str(np.round(1.0 - test_mse / np.var(y_test),3)) + "\n")
-        fp.write(runtime)
+        # fp.write('Function found (' +str(len(nodes_final_evolved_function)) + 'nodes ):\n\t' + str(nodes_final_evolved_function) + "\n")
+        # # Print results for training set
+        # fp.write('Training\n\tMSE:'+ str(np.round(final_evolved_function.fitness,3)) +
+        #             '\n\tRsquared:' + str(np.round(1.0 - final_evolved_function.fitness / np.var(y_train),3)) + "\n")
+        # # Re-evaluate the evolved function on the test set
+        # test_prediction = final_evolved_function.GetOutput( X_test )
+        # test_mse = np.mean(np.square( y_test - test_prediction ))
+        # fp.write('Test:\n\tMSE:' + str(np.round( test_mse, 3)) +
+        #             '\n\tRsquared:'+ str(np.round(1.0 - test_mse / np.var(y_test),3)) + "\n")
+        # fp.write(runtime)
 
 if __name__ == '__main__':
     dir_name = "experiments"
