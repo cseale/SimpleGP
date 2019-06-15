@@ -4,6 +4,7 @@ from numpy.random import random
 import numpy.random
 import time
 from copy import deepcopy
+import sys
 
 from simplegp.Variation import Variation
 from simplegp.Selection import Selection
@@ -21,13 +22,15 @@ class SimpleGP:
                  mutation_rate=0.5,
                  max_evaluations=-1,
                  max_generations=-1,
-                 max_time=-1,
-                 initialization_max_tree_height=4,
+                 max_time = -1,
+                 initialization_max_tree_height = 4,
                  max_tree_size=100,
-                 tournament_size=4,
-                 uniform_k=1,
+                 tournament_size = 4,
+                 uniform_k = 1,
                  backprop_every_generations = 1,
                  backprop_selection_ratio = 1,
+                 initialBackprop = 1,
+                 first_generations = sys.maxsize
             ):
         self.pop_size = pop_size
         self.backprop_function = backprop_function
@@ -47,10 +50,12 @@ class SimpleGP:
         self.dirName = ""
         self.logName = ''
         # gradient descent params
+        self.first_generations = first_generations
+        self.initialBackprop = initialBackprop
         self.uniform_k = uniform_k
         self.backprop_every_generations = backprop_every_generations
         self.backprop_selection_ratio = backprop_selection_ratio
-        assert backprop_selection_ratio <= 1, "backprop_selection_ratio should be leq 1."
+        assert backprop_selection_ratio <= 1, "backprop_selection_ratio should be <= 1."
 
     def __ShouldTerminate(self):
         must_terminate = False
@@ -68,39 +73,32 @@ class SimpleGP:
         #         'evaluations\n\t', np.round(elapsed_time,2), 'seconds')
         return must_terminate
 
-    def getFilename(self, run, backprop = False, iterationNum = 0):
-        basename = "maxtime" + str(run.max_time) + "_pop" + str(run.pop_size) + "_mr" + str(run.mutation_rate) + "_tour" + str(run.tournament_size) + "_maxHeight" + str(run.initialization_max_tree_height) + "_cr" + str(run.crossover_rate)
+    def getFilename(self, backprop = False, iterationNum = 0):
+        basename = "maxtime" + str(self.max_time) + "_pop" + str(self.pop_size) + "_mr" + str(self.mutation_rate) + "_tour" + str(self.tournament_size) + "_maxHeight" + str(self.initialization_max_tree_height) + "_cr" + str(self.crossover_rate)
         log = ".txt"
-        extension = ""
-		
-        if self.backprop_every_generations != 1:
-            extension = extension + "_bpeverygen" + str(self.backprop_every_generations) 
-            
-        if self.uniform_k != 1:
-            extension = extension + "_uniform" + str(self.uniform_k)
-            
-        if self.backprop_selection_ratio != 1:
-            extension = extension + "_bpratio" + str(self.backprop_selection_ratio)
-        
+        if backprop:
+            extension = "__topK" + str(self.backprop_selection_ratio) + "_unK" + str(self.uniform_k) + "_gen" + str(self.backprop_every_generations) + "_lr" + str(self.backprop_function.learning_rate) + "_it" + str(self.backprop_function.iterations) + "_oIt" + str(self.backprop_function.override_iterations) + "_initial" + str(self.initialBackprop) + "_firstGen" + str(self.first_generations)
+        else:
+            extension = ""
         self.logName = basename + extension + "_" + str(iterationNum) + log
         return self.logName
 
-    def Run(self, applyBackProp = True, iterationNum = 0):
-		# Create target Directory if don't exist
-        self.dirName = "experiments"
+    def Run(self, applyBackProp = True, iterationNum = 0, dirName = "experiments"):
+        self.dirName = dirName
 
         self.start_time = time.time()
 
         population = []
 
-        with open(self.dirName + "/" + self.getFilename(self, applyBackProp, iterationNum), "w+") as fp:
+        with open(self.dirName + "/" + self.getFilename(applyBackProp, iterationNum), "w+") as fp:
 
             for i in range( self.pop_size):
 
                 population.append(Variation.GenerateRandomTree( self.functions, self.terminals,
                                                   self.initialization_max_tree_height ) )
-
-                population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
+                
+                if self.initialBackprop:
+                    population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
 
             fp.write("generations_elite-fitness_number-of-evaluations_time\r\n")
@@ -127,7 +125,7 @@ class SimpleGP:
                         Apply backprop every generation if backprop_every_generations is not passed, otherwise only do it every x gens
                         '''
                         doBackprop = False
-                        if applyBackProp and self.generations % self.backprop_every_generations == 0:
+                        if applyBackProp and self.generations % self.backprop_every_generations == 0 and self.generations < self.first_generations:
                             if self.uniform_k == 1 or random() <= self.uniform_k:
                                 doBackprop = True
                         o = self.backprop_function.Backprop(o) if doBackprop else o
