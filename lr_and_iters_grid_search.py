@@ -39,7 +39,7 @@ steps_vals = range(9, 10)
 learning_rates = [math.pow(10, i) for i in range(-1, 0)]
 
 log_file = open("./logs/learning_rate_and_iterations_experiments.txt", "w")
-log_file.write("learning_rate iterations train_mse test_mse runtime evals gens nodes_amnt\n")
+_ = log_file.write("learning_rate iterations train_mse test_mse runtime evals gens nodes_amnt\n")
 
 # Optimal parameters for simpleGP symbolic regression without backprop
 tour_size = 8
@@ -54,25 +54,23 @@ uni_k = 0.5
 
 # Use 10-fold cross validation
 kf = KFold(n_splits=10, shuffle=True, random_state=42)
-crossval_indices = kf.split(X)
 
-total_experiments = len(learning_rates)*len(steps_vals)
+total_experiments = 10*len(learning_rates)*len(steps_vals)
 counter = 0
 
 for lr in learning_rates:
     for steps in steps_vals:
-        # Reset fitness function object
-        fitness_function = SymbolicRegressionFitness( X_train, y_train )
-
-        counter += 1
-        print(f"Running experiment {counter}/{total_experiments} with lr={lr}, iters={steps}")
-
         # Run the experiments with 10-fold cross validation
-        for (train_index, test_index) in crossval_indices:
-            print(f"Running tests {i+1}/{repetitions}")
+        i = 0
+        for (train_index, test_index) in kf.split(X):
+            i += 1
+            counter += 1
+            print(f"Running experiment {counter}/{total_experiments}, lr={lr}, iters={steps}, crossval iter {i}/10")
 
+            # Reset fitness function object with new train/test sets
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
+            fitness_function = SymbolicRegressionFitness( X_train, y_train )
 
             backprop_function = Backpropagation(X_train, y_train, iters=steps, learning_rate=lr)
             sgp = SimpleGP(
@@ -101,7 +99,7 @@ for lr in learning_rates:
             gens = sgp.generations
             nodes_amnt = len(nodes_final_evolved_function)
 
-            log_file.write(f"{lr} {steps} {train_mse} {test_mse} {runtime} {evals} {gens} {nodes_amnt}\n")
+            _ = log_file.write(f"{lr} {steps} {train_mse} {test_mse} {runtime} {evals} {gens} {nodes_amnt}\n")
 
 log_file.close()
 
