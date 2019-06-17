@@ -35,8 +35,8 @@ for i in range(X.shape[1]):
 # Find the best amount of iterations for backpropagation
 # Learning rate 0.01 works well in our unit test, so we freeze it at that and
 # try multiple values of iters for that.
-steps_vals = range(9, 10)
-learning_rates = [math.pow(10, i) for i in range(-1, 0)]
+steps_vals = range(1, 20)
+learning_rates = [math.pow(10, i) for i in range(-6, 0)]
 
 log_file = open("./logs/learning_rate_and_iterations_experiments.txt", "w")
 _ = log_file.write("learning_rate iterations train_mse test_mse runtime evals gens nodes_amnt\n")
@@ -90,6 +90,7 @@ for lr in learning_rates:
             _, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i)
 
             # Log results
+            final_evolved_function = fitness_function.elite
             nodes_final_evolved_function = final_evolved_function.GetSubtree()
             test_prediction = final_evolved_function.GetOutput( X_test )
 
@@ -103,18 +104,42 @@ for lr in learning_rates:
 
 log_file.close()
 
-# Extract and plot the log file's contents
-filepath = "./../logs/learning_rate_and_iterations_experiments.txt"
+# Extract the log file's contents into a data frame for easy processing
+filepath = "./logs/learning_rate_and_iterations_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
 
-# Plot figures to observe the influence of the amount of GD iterations
-for i in range(1, 10):
-    evals = df[df.iterations == i].newEvals
-    fitness = df[df.iterations == i].test_mse
-    plt.scatter(evals, fitness, label=f"{i} iterations")
-plt.legend()
-plt.xlabel("Evaluations")
-plt.ylabel("MSE on the test set")
-plt.title("Evaluations ~ fitness for different amounts of backpropagation iterations")
-plt.savefig("./../figs/evals_vs_fitness_for_amnt_iterations_with_lr=0.01.png")
-plt.show()
+# Separately plot the influence of the learning rate and the amount of
+# iterations on the MSEs, the amount of generations, the amount of nodes, and
+# the runtime.
+for var in ["learning_rate", "iterations"]:
+    var_str = var.replace("_", " ").capitalize()
+
+    # MSEs
+    plt.plot(df[var], df.train_mse, label="Train MSE")
+    plt.plot(df[var], df.test_mse, label="Test MSE")
+    plt.legend()
+    plt.xlabel(var_str)
+    plt.ylabel("Mean Square Error (MSE)")
+    plt.title(f"{var_str} ~ Train and test MSE")
+    plt.show()
+
+    # Gens
+    plt.plot(df[var], df.gens)
+    plt.xlabel(var_str)
+    plt.ylabel("Generations")
+    plt.title(f"{var_str} ~ Generations")
+    plt.show()
+
+    # Amount of nodes in the final evolved function
+    plt.plot(df[var], df.nodes_amnt)
+    plt.xlabel(var_str)
+    plt.ylabel("Amount of nodes in the final function")
+    plt.title(f"{var_str} ~ ")
+    plt.show()
+
+    # Runtime
+    plt.plot(df[var], df.runtime)
+    plt.xlabel(var_str)
+    plt.ylabel("Runtime (s)")
+    plt.title(f"{var_str} ~ Runtime")
+    plt.show()
