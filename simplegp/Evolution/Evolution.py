@@ -90,7 +90,7 @@ class SimpleGP:
 
     def Run(self, applyBackProp = True, iterationNum = 0):
 		# Create target Directory if don't exist
-        self.dirName = "experiments"
+        self.dirName = "experiments_lr_and_iters"
 
         self.start_time = time.time()
 

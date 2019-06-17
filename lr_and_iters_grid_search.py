@@ -1,12 +1,11 @@
 # Libraries
 import math
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import sklearn.datasets
 from sklearn.model_selection import KFold
 from copy import deepcopy
-import multiprocessing as mp
-import progressbar
-import os
 
 # Internal imports
 from simplegp.Nodes.BaseNode import Node
@@ -15,101 +14,109 @@ from simplegp.Nodes.Backpropagation import Backpropagation
 from simplegp.Fitness.FitnessFunction import SymbolicRegressionFitness
 from simplegp.Evolution.Evolution import SimpleGP
 
-
 np.random.seed(42)
+
+# Load regression dataset 
+X, y = sklearn.datasets.load_diabetes( return_X_y=True )
+# Take a dataset split
+# X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.5, random_state=42 )
 
 # Set functions and terminals
 functions = [
-	AddNode(),
-    SubNode(),
-    MulNode(),
-    DivNode()
+	AddNode()
+	, SubNode()
+	, MulNode()
 ]
-
-# Load regression dataset
-X, y = sklearn.datasets.load_diabetes( return_X_y=True )
-# Take a dataset split
-kf = KFold( n_splits=10, shuffle=True, random_state=42 )
-
 # chosen function nodes
 terminals = [ EphemeralRandomConstantNode() ]	# use one ephemeral random constant node
 for i in range(X.shape[1]):
 	terminals.append(FeatureNode(i))	# add a feature node for each feature
 
-def createExperiments():
-    experiments = []
-    
-    # number of runs
-    number_of_runs = 30
-    
-    # set up experiements
-    population = 512
-    mutation_rate = 0.001
-    crossover_rate = 1
-    max_height = 2
-    t_size = 8
-    max_time = 20
-    numRep = 30 # number of repetitions
-    main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time)
-    
-    # breh
-    iters_vals = range(9, 10)
-    learning_rates = [math.pow(10, i) for i in range(-1, 0)]
-    for lr in learning_rates:
-        for iters in iters_vals:
-            # extra experiment params
-            extra_parameters = (lr, iters)
-    
-            # Cross val experiment setup
-            i = 0
-            for train_index, test_index in kf.split(X):
-                i += 1
-                indices = (i, train_index, test_index)
-                experiments.append((indices, main_ga_parameters, extra_parameters))
-   
-    return experiments
+# Find the best amount of iterations for backpropagation
+# Learning rate 0.01 works well in our unit test, so we freeze it at that and
+# try multiple values of iters for that.
+steps_vals = range(9, 10)
+learning_rates = [math.pow(10, i) for i in range(-1, 0)]
 
+log_file = open("./logs/learning_rate_and_iterations_experiments.txt", "w")
+log_file.write("learning_rate iterations train_mse test_mse runtime evals gens nodes_amnt\n")
 
-def do_experiment(experiment):
-    (i, train_index, test_index), (p, m, cr, mH, tSize, tim), (lr, iters) = experiment
-    # Cross validation
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
-    # Set fitness function
-    fitness_function = SymbolicRegressionFitness( X_train, y_train )
-    # Run GP
-    backprop_function = Backpropagation( X_train, y_train, iters=iters, learning_rate=lr, decayFunction = Backpropagation.NoDecay )
-    sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim)	# other parameters are optional
-    _, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i)
+# Optimal parameters for simpleGP symbolic regression without backprop
+tour_size = 8
+max_height = 2
+cross_rate = 1.0
+mut_rate = 0.001
+pop_size = 512
+max_time = 20
 
-    # Print results
-    with open(sgp.dirName +"/" + sgp.logName, "a") as fp:
+# Optimal backprop params
+uni_k = 0.5
 
-        # Show the evolved function
-        final_evolved_function = fitness_function.elite
-        nodes_final_evolved_function = final_evolved_function.GetSubtree()
-        fp.write('Function found (' +str(len(nodes_final_evolved_function)) + 'nodes ):\n\t' + str(nodes_final_evolved_function) + "\n")
-        # Print results for training set
-        fp.write('Training\n\tMSE:'+ str(np.round(final_evolved_function.fitness,3)) +
-                    '\n\tRsquared:' + str(np.round(1.0 - final_evolved_function.fitness / np.var(y_train),3)) + "\n")
-        # Re-evaluate the evolved function on the test set
-        test_prediction = final_evolved_function.GetOutput( X_test )
-        test_mse = np.mean(np.square( y_test - test_prediction ))
-        fp.write('Test:\n\tMSE:' + str(np.round( test_mse, 3)) +
-                    '\n\tRsquared:'+ str(np.round(1.0 - test_mse / np.var(y_test),3)) + "\n")
-        fp.write(runtime)
+# Use 10-fold cross validation
+kf = KFold(n_splits=10, shuffle=True, random_state=42)
+crossval_indices = kf.split(X)
 
-if __name__ == '__main__':
-    dir_name = "experiments"
+total_experiments = len(learning_rates)*len(steps_vals)
+counter = 0
 
-    if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
-    
-    e = createExperiments()
-    pool = mp.Pool(mp.cpu_count())
+for lr in learning_rates:
+    for steps in steps_vals:
+        # Reset fitness function object
+        fitness_function = SymbolicRegressionFitness( X_train, y_train )
 
-    print("running on " + str(mp.cpu_count()) + " cores")
-    
-    with progressbar.ProgressBar(max_value=len(e)) as bar:
-        for i, _ in enumerate(pool.imap_unordered(do_experiment, e), 1):
-            bar.update(i)
+        counter += 1
+        print(f"Running experiment {counter}/{total_experiments} with lr={lr}, iters={steps}")
+
+        # Run the experiments with 10-fold cross validation
+        for (train_index, test_index) in crossval_indices:
+            print(f"Running tests {i+1}/{repetitions}")
+
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            backprop_function = Backpropagation(X_train, y_train, iters=steps, learning_rate=lr)
+            sgp = SimpleGP(
+                fitness_function,
+                backprop_function,
+                functions,
+                terminals,
+                pop_size=pop_size,
+                mutation_rate=mut_rate,
+                crossover_rate=cross_rate,
+                initialization_max_tree_height=max_height,
+                tournament_size=tour_size,
+                max_time=max_time,
+                uniform_k=uni_k
+            )
+
+            _, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i)
+
+            # Log results
+            nodes_final_evolved_function = final_evolved_function.GetSubtree()
+            test_prediction = final_evolved_function.GetOutput( X_test )
+
+            train_mse = final_evolved_function.fitness
+            test_mse = np.mean(np.square( y_test - test_prediction ))
+            evals = fitness_function.evaluations
+            gens = sgp.generations
+            nodes_amnt = len(nodes_final_evolved_function)
+
+            log_file.write(f"{lr} {steps} {train_mse} {test_mse} {runtime} {evals} {gens} {nodes_amnt}\n")
+
+log_file.close()
+
+# Extract and plot the log file's contents
+filepath = "./../logs/learning_rate_and_iterations_experiments.txt"
+df = pd.read_csv(filepath, sep=" ")
+
+# Plot figures to observe the influence of the amount of GD iterations
+for i in range(1, 10):
+    evals = df[df.iterations == i].newEvals
+    fitness = df[df.iterations == i].test_mse
+    plt.scatter(evals, fitness, label=f"{i} iterations")
+plt.legend()
+plt.xlabel("Evaluations")
+plt.ylabel("MSE on the test set")
+plt.title("Evaluations ~ fitness for different amounts of backpropagation iterations")
+plt.savefig("./../figs/evals_vs_fitness_for_amnt_iterations_with_lr=0.01.png")
+plt.show()
