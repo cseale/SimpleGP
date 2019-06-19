@@ -8,7 +8,7 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20,
                     allStats = False):
     '''
     valType: which value to aggregate over: "test_mse", "numGen", "tree_size", 
-            "train_mse", "diff_mse"
+            "train_mse", "diff_mse", "gen0_train_mse"
     printNum: number of mean mses to print
     allStats: whether to return also the value and file name of each single run
     '''
@@ -36,6 +36,8 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20,
                 val = parse_mse(d[-6])
             elif valType == "diff_mse": # difference between train and test MSE
                 val = parse_mse(d[-3]) - parse_mse(d[-6])
+            elif valType == "gen0_train_mse":
+                val = parse_mseGen0(experiment_dir + f)
            
             all_fileValues.append(val)
             all_files.append(f)
@@ -55,7 +57,9 @@ def aggregateParams(experiment_dir, valType = "test_mse", printNum = 20,
     elif valType == "train_mse":
         name = "train MSE"
     elif valType == "diff_mse":
-        name = "test minus train MSE"
+        name = "test - train MSE"
+    elif valType == "gen0_train_mse":
+        name = "train MSE in generation 0"
     else:
         name = "tree size"
     for params in params_to_val:
@@ -95,6 +99,22 @@ def parse_numGen(line):
 def parse_treeSize(line):
     return int(re.findall(r'\d+', line)[0])
 
+def parse_mseGen0(fname):
+    '''
+    Returns train MSE from initial population (generation 0)
+    '''
+    with open(fname) as f:
+        line = f.readline()
+        line = f.readline()
+        index = line.find("_") + 1
+        character = line[index]
+        mse = ""
+        while character.isdigit() or character == ".":
+            mse += character
+            index += 1
+            character = line[index]
+    return float(mse)
+
 def get_params_final_function(experiment_dir):
     '''
     Returns for each file: number of variables, number of +-functions, etc.
@@ -103,11 +123,12 @@ def get_params_final_function(experiment_dir):
     
     stats = []
     all_files = [] # all file names
+    params_to_stats = {} # all results per parameter setting
     
     # aggregate value
     with progressbar.ProgressBar(max_value=len(files)) as bar:
         for i, f in enumerate(files):
-            
+            key = get_key(f)
             d = file_read_from_tail(experiment_dir + f, 11)
             if d == None:
                 continue
@@ -147,11 +168,16 @@ def get_params_final_function(experiment_dir):
             
             stats.append(currStats)
             all_files.append(f)
+            
+            if key not in params_to_stats:
+                params_to_stats[key] = []
+
+            params_to_stats[key].append(currStats)
+            
             bar.update(i)
     
-    return all_files, stats
-            
-                
+    return all_files, stats, params_to_stats
+
 def parse_function_count(line, character = "x"):
     return line.count(character) 
 
