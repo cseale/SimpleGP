@@ -17,9 +17,12 @@ def errorbar_plot(values):
     plt.errorbar(x, y, e, linestyle='-', marker='^')
     plt.show()
 
-def calc_means_and_stds(template_str, options, p_to_mse):
+def calc_means_and_stds(template_str, options, p_to_mse, two = False):
     values = []
     for o in options:
-        key = template_str.format(o)
+        if not two:
+            key = template_str.format(o)
+        else:
+            key = template_str.format(o, o) # for number of backprop iterations
         values.append((o, p_to_mse[key]))
     return values
