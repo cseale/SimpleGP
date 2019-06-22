@@ -103,7 +103,7 @@ class SimpleGP:
                 population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
 
-            fp.write("generation,individual,diff_after_backprop,backprop_iterations,total_backprop_improvement,current_fitness\r\n")
+            fp.write("generation,individual,diff_after_backprop,backprop_iterations,total_backprop_improvement,current_fitness,generations_alive,created_by\r\n")
 
             while not self.__ShouldTerminate():
 
@@ -115,20 +115,24 @@ class SimpleGP:
                     o.backprop_iterations = 0
                     o.backprop_improvement = 0
                     o.generations_alive = 0
+                    o.created_by = ""
                     if ( random() < self.crossover_rate ):
                         o = Variation.SubtreeCrossover( o, population[numpy.random.randint(len(population))] )
+                        o.created_by = "SubtreeCrossover"
                     if ( random() < self.mutation_rate ):
                         o = Variation.SubtreeMutation( o, self.functions, self.terminals, max_height=self.initialization_max_tree_height )
+                        o.created_by += "SubtreeMutation"
                     if len(o.GetSubtree()) > self.max_tree_size:
                         del o
                         o = deepcopy( population[i])
+                        o.created_by = "clone"
 
                     O.append(o)
                 PO = population+O
                 
                 for i in range(len(PO)):
                     o = PO[i]
-                    o = o.generations_alive + 1
+                    o.generations_alive = o.generations_alive + 1
                     '''
                     Apply backprop to all if uniform_k was not passed, otherwise apply to uniform_k percent.'
                     Apply backprop every generation if backprop_every_generations is not passed, otherwise only do it every x gens
@@ -142,7 +146,6 @@ class SimpleGP:
                     after = self.fitness_function.Evaluate(o)
                     improvement = before - after
                     o.backprop_improvement = o.backprop_improvement + improvement
-                    fp.write(str(self.generations) + "," + str(i) + "," + str(improvement) +  "," + str(o.backprop_iterations) +  "," + str(o.backprop_improvement) +  "," + str(o.fitness) + "," + str(o.generations_alive) + "\r\n")
                 
 #                     if self.backprop_selection_ratio != 1: # Non-Default: Apparently, we want to select the top k%.
 #                         if applyBackProp and self.generations % self.backprop_every_generations == 0:
@@ -156,6 +159,10 @@ class SimpleGP:
 
                 
                 population = Selection.TournamentSelect( PO, len(population), tournament_size=self.tournament_size )
+
+                for i in range(len(population)):
+                    o = population[i]
+                    fp.write(str(self.generations) + "," + str(i) + "," + str(improvement) +  "," + str(o.backprop_iterations) +  "," + str(o.backprop_improvement) +  "," + str(o.fitness) + "," + str(o.generations_alive) + "," + o.created_by + "\r\n")
 
                 self.generations = self.generations + 1
 

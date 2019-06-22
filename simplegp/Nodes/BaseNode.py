@@ -15,6 +15,7 @@ class Node:	# Base class with general functionalities
 		self.backprop_iterations = 0
 		self.backprop_improvement = 0
 		self.generations_alive = 0
+		self.created_by = "init"
 
 
 	def GetSubtree( self ):
