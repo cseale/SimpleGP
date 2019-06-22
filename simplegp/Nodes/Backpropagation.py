@@ -55,5 +55,6 @@ class Backpropagation:
 			newLr = self.decayFunction(self, i)
 			# do gradient descent
 			individual.GradientDescent(grad_mse, newLr)
+			individual.backprop_iterations = individual.backprop_iterations + 1
 
 		return individual

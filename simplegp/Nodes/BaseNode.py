@@ -12,6 +12,9 @@ class Node:	# Base class with general functionalities
 		self.dw = [None] * (self.arity * 2)
 		self.X0 = None
 		self.X1 = None
+		self.backprop_iterations = 0
+		self.backprop_improvement = 0
+		self.generations_alive = 0
 
 
 	def GetSubtree( self ):
