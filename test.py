@@ -20,9 +20,9 @@ np.random.seed(42)
 # Set functions and terminals
 functions = [
 	AddNode(),
-    SubNode(),
-    MulNode(),
-    DivNode()
+	SubNode(),
+	MulNode(),
+	DivNode()
 ]
 
 # Load regression dataset
@@ -36,73 +36,79 @@ for i in range(X.shape[1]):
 	terminals.append(FeatureNode(i))	# add a feature node for each feature
 
 def createExperiments():
-    experiments = []
-    
-    # number of runs
-    number_of_runs = 30
-    
-    # set up experiements
-    population = 512
-    mutation_rate = 0.001
-    crossover_rate = 1
-    max_height = 2
-    t_size = 8
-    max_time = 20
-    numRep = 30 # number of repetitions
-    main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time)
-    
-    # extra experiment params
-    extra_parameters = ()
-    
-    i = 0
-    for train_index, test_index in kf.split(X):
-        i += 1
-        indices = (i, train_index, test_index)
-        experiments.append((indices, main_ga_parameters, extra_parameters))
-   
-    return experiments
+	experiments = []
+
+	# number of runs
+	number_of_runs = 30
+
+	# set up experiements
+	population = 512
+	mutation_rate = 0.001
+	crossover_rate = 1
+	max_height = 2
+	t_size = 8
+	max_time = 20
+	numRep = 30 # number of repetitions
+	main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time, numRep)
+
+	# extra experiment params
+	reset_weights_on_variation = False
+	iters = 15
+	learning_rate = 0.001
+	uniform_k = 0.5
+	extra_parameters = (reset_weights_on_variation, iters, learning_rate, uniform_k)
+
+	i = 0
+	for train_index, test_index in kf.split(X):
+		i += 1
+		indices = (i, train_index, test_index)
+		experiments.append((indices, main_ga_parameters, extra_parameters))
+
+	return experiments
 
 
 def do_experiment(experiment):
-    (i, train_index, test_index), (p, m, cr, mH, tSize, tim), _ = experiment
-    # Cross validation
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
-    # Set fitness function
-    fitness_function = SymbolicRegressionFitness( X_train, y_train )
-    # Run GP
-    backprop_function = Backpropagation( X_train, y_train, iters=5, learning_rate=0.001, decayFunction = Backpropagation.NoDecay )
-    sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim)	# other parameters are optional
-    _, _, _, runtime = sgp.Run(applyBackProp=False, iterationNum = i)
+	(i, train_index, test_index), (p, m, cr, mH, tSize, tim, num_rep), (reset_weights_on_variation, iters, learning_rate, uniform_k) = experiment
+	for curr_rep in range(num_rep):
+		# Cross validation
+		X_train, X_test = X[train_index], X[test_index]
+		y_train, y_test = y[train_index], y[test_index]
+		# Set fitness function
+		fitness_function = SymbolicRegressionFitness( X_train, y_train )
+		# Run GP
 
-    # Print results
-    with open(sgp.dirName +"/" + sgp.logName, "a") as fp:
+		backprop_function = Backpropagation( X_train, y_train, iters=iters, learning_rate=learning_rate, decayFunction = Backpropagation.NoDecay,  )
+		sgp = SimpleGP(fitness_function, backprop_function, functions, terminals, pop_size = p, mutation_rate=m, crossover_rate=cr, initialization_max_tree_height = mH, tournament_size = tSize, max_time = tim, uniform_k = uniform_k	, reset_weights_on_variation = reset_weights_on_variation)	# other parameters are optional
+		_, _, _, runtime = sgp.Run(applyBackProp=True, iterationNum = i*num_rep + curr_rep)
 
-        # Show the evolved function
-        final_evolved_function = fitness_function.elite
-        nodes_final_evolved_function = final_evolved_function.GetSubtree()
-        fp.write('Function found (' +str(len(nodes_final_evolved_function)) + 'nodes ):\n\t' + str(nodes_final_evolved_function) + "\n")
-        # Print results for training set
-        fp.write('Training\n\tMSE:'+ str(np.round(final_evolved_function.fitness,3)) +
-                    '\n\tRsquared:' + str(np.round(1.0 - final_evolved_function.fitness / np.var(y_train),3)) + "\n")
-        # Re-evaluate the evolved function on the test set
-        test_prediction = final_evolved_function.GetOutput( X_test )
-        test_mse = np.mean(np.square( y_test - test_prediction ))
-        fp.write('Test:\n\tMSE:' + str(np.round( test_mse, 3)) +
-                    '\n\tRsquared:'+ str(np.round(1.0 - test_mse / np.var(y_test),3)) + "\n")
-        fp.write(runtime)
+		# Print results
+		with open(sgp.dirName +"/" + sgp.logName, "a") as fp:
+
+			# Show the evolved function
+			final_evolved_function = fitness_function.elite
+			nodes_final_evolved_function = final_evolved_function.GetSubtree()
+			fp.write('Function found (' +str(len(nodes_final_evolved_function)) + 'nodes ):\n\t' + str(nodes_final_evolved_function) + "\n")
+			# Print results for training set
+			fp.write('Training\n\tMSE:'+ str(np.round(final_evolved_function.fitness,3)) +
+						'\n\tRsquared:' + str(np.round(1.0 - final_evolved_function.fitness / np.var(y_train),3)) + "\n")
+			# Re-evaluate the evolved function on the test set
+			test_prediction = final_evolved_function.GetOutput( X_test )
+			test_mse = np.mean(np.square( y_test - test_prediction ))
+			fp.write('Test:\n\tMSE:' + str(np.round( test_mse, 3)) +
+						'\n\tRsquared:'+ str(np.round(1.0 - test_mse / np.var(y_test),3)) + "\n")
+			fp.write(runtime)
 
 if __name__ == '__main__':
-    dir_name = "experiments"
+	dir_name = "experiments"
 
-    if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
-    
-    e = createExperiments()
-    pool = mp.Pool(mp.cpu_count())
+	if not os.path.exists(dir_name):
+		os.mkdir(dir_name)
 
-    print("running on " + str(mp.cpu_count()) + " cores")
-    
-    with progressbar.ProgressBar(max_value=len(e)) as bar:
-        for i, _ in enumerate(pool.imap_unordered(do_experiment, e), 1):
-            bar.update(i)
+	e = createExperiments()
+	pool = mp.Pool(mp.cpu_count())
+
+	print("running on " + str(mp.cpu_count()) + " cores")
+
+	with progressbar.ProgressBar(max_value=len(e)) as bar:
+		for i, _ in enumerate(pool.imap_unordered(do_experiment, e), 1):
+			bar.update(i)

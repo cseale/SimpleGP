@@ -25,7 +25,7 @@ def GenerateRandomTree(functions, terminals, max_height, curr_height=0):
 def SubtreeMutation( individual, functions, terminals, max_height=4 ):
 
 	mutation_branch = GenerateRandomTree( functions, terminals, max_height )
-	
+
 	nodes = individual.GetSubtree()
 
 	nodes = __GetCandidateNodesAtUniformRandomDepth( nodes )
@@ -45,7 +45,7 @@ def SubtreeMutation( individual, functions, terminals, max_height=4 ):
 
 
 def SubtreeCrossover( individual, donor ):
-	
+
 	# this version of crossover returns 1 child
 
 	nodes1 = individual.GetSubtree()

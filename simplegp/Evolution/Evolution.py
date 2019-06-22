@@ -30,7 +30,8 @@ class SimpleGP:
                  backprop_every_generations = 1,
                  backprop_selection_ratio = 1,
                  initialBackprop = 1,
-                 first_generations = sys.maxsize
+                 first_generations = sys.maxsize,
+                 reset_weights_on_variation = False
             ):
         self.pop_size = pop_size
         self.backprop_function = backprop_function
@@ -55,6 +56,7 @@ class SimpleGP:
         self.uniform_k = uniform_k
         self.backprop_every_generations = backprop_every_generations
         self.backprop_selection_ratio = backprop_selection_ratio
+        self.reset_weights_on_variation = reset_weights_on_variation
         assert backprop_selection_ratio <= 1, "backprop_selection_ratio should be <= 1."
 
     def __ShouldTerminate(self):
@@ -74,7 +76,7 @@ class SimpleGP:
         return must_terminate
 
     def getFilename(self, backprop = False, iterationNum = 0):
-        basename = "maxtime" + str(self.max_time) + "_pop" + str(self.pop_size) + "_mr" + str(self.mutation_rate) + "_tour" + str(self.tournament_size) + "_maxHeight" + str(self.initialization_max_tree_height) + "_cr" + str(self.crossover_rate)
+        basename = "maxtime" + str(self.max_time) + "_pop" + str(self.pop_size) + "_mr" + str(self.mutation_rate) + "_tour" + str(self.tournament_size) + "_maxHeight" + str(self.initialization_max_tree_height) + "_cr" + str(self.crossover_rate) + "_reset" + str(self.reset_weights_on_variation)
         log = ".txt"
         if backprop:
             extension = "__topK" + str(self.backprop_selection_ratio) + "_unK" + str(self.uniform_k) + "_gen" + str(self.backprop_every_generations) + "_lr" + str(self.backprop_function.learning_rate) + "_it" + str(self.backprop_function.iterations) + "_oIt" + str(self.backprop_function.override_iterations) + "_initial" + str(self.initialBackprop) + "_firstGen" + str(self.first_generations)
@@ -96,7 +98,7 @@ class SimpleGP:
 
                 population.append(Variation.GenerateRandomTree( self.functions, self.terminals,
                                                   self.initialization_max_tree_height ) )
-                
+
                 if self.initialBackprop:
                     population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
@@ -110,12 +112,17 @@ class SimpleGP:
                 O = []
 
                 for i in range(len(population)):
-
+                    variated = False
                     o = deepcopy(population[i])
                     if ( random() < self.crossover_rate ):
                         o = Variation.SubtreeCrossover( o, population[numpy.random.randint(len(population))] )
+                        variated = True
                     if ( random() < self.mutation_rate ):
                         o = Variation.SubtreeMutation( o, self.functions, self.terminals, max_height=self.initialization_max_tree_height )
+                        variated = True
+                    if variated and self.reset_weights_on_variation:
+                        for node in o.GetSubtree():
+                            node.weights = np.random.normal(size = node.arity * 2)
                     if len(o.GetSubtree()) > self.max_tree_size:
                         del o
                         o = deepcopy( population[i])
