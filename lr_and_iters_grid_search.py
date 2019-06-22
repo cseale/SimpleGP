@@ -104,6 +104,7 @@ for lr in learning_rates:
 
 log_file.close()
 
+exit()
 # Extract the log file's contents into a data frame for easy processing
 filepath = "./logs/learning_rate_and_iterations_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
