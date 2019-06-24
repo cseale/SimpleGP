@@ -13,19 +13,11 @@ train_MSE = []
 test_MSE = []
 for name in to_read_files:
     f = open(name)
-    prevline = "hi_hi_hi_hi"
     for i,x in enumerate(f):
-        print(prevline)
-        t = prevline
         if "Training" in x.split():
             train_MSE.append(float(f.readline()[5:-1]))
         if "Test:" in x.split():
             test_MSE.append(float(f.readline()[5:-1]))
-        if "Function" in x.split():
-            print("prev:{}".format(t))
-            evals.append(int(prevline.split("_")[2]))
-        prevline = x
-        print(prevline)
 
 train_MSE = np.array(train_MSE)
 test_MSE = np.array(test_MSE)

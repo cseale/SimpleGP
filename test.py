@@ -52,7 +52,7 @@ def createExperiments():
 	main_ga_parameters = (population, mutation_rate, crossover_rate, max_height, t_size, max_time, numRep)
 
 	# extra experiment params
-	reset_weights_on_variation = False
+	reset_weights_on_variation = True
 	iters = 15
 	learning_rate = 0.001
 	uniform_k = 0.5
