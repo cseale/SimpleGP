@@ -30,7 +30,8 @@ class SimpleGP:
                  backprop_every_generations = 1,
                  backprop_selection_ratio = 1,
                  initialBackprop = 1,
-                 first_generations = sys.maxsize
+                 first_generations = sys.maxsize,
+                 reset_weights_on_variation = False
             ):
         self.pop_size = pop_size
         self.backprop_function = backprop_function
@@ -55,6 +56,7 @@ class SimpleGP:
         self.uniform_k = uniform_k
         self.backprop_every_generations = backprop_every_generations
         self.backprop_selection_ratio = backprop_selection_ratio
+        self.reset_weights_on_variation = reset_weights_on_variation
         assert backprop_selection_ratio <= 1, "backprop_selection_ratio should be <= 1."
 
     def __ShouldTerminate(self):
@@ -74,7 +76,7 @@ class SimpleGP:
         return must_terminate
 
     def getFilename(self, backprop = False, iterationNum = 0):
-        basename = "maxtime" + str(self.max_time) + "_pop" + str(self.pop_size) + "_mr" + str(self.mutation_rate) + "_tour" + str(self.tournament_size) + "_maxHeight" + str(self.initialization_max_tree_height) + "_cr" + str(self.crossover_rate)
+        basename = "maxtime" + str(self.max_time) + "_pop" + str(self.pop_size) + "_mr" + str(self.mutation_rate) + "_tour" + str(self.tournament_size) + "_maxHeight" + str(self.initialization_max_tree_height) + "_cr" + str(self.crossover_rate) + "_reset" + str(self.reset_weights_on_variation)
         log = ".txt"
         if backprop:
             extension = "__topK" + str(self.backprop_selection_ratio) + "_unK" + str(self.uniform_k) + "_gen" + str(self.backprop_every_generations) + "_lr" + str(self.backprop_function.learning_rate) + "_it" + str(self.backprop_function.iterations) + "_oIt" + str(self.backprop_function.override_iterations) + "_initial" + str(self.initialBackprop) + "_firstGen" + str(self.first_generations)
@@ -96,7 +98,7 @@ class SimpleGP:
 
                 population.append(Variation.GenerateRandomTree( self.functions, self.terminals,
                                                   self.initialization_max_tree_height ) )
-                
+
                 if self.initialBackprop:
                     population[i] = self.backprop_function.Backprop(population[i]) if applyBackProp else population[i]
                 self.fitness_function.Evaluate(population[i])
@@ -110,16 +112,36 @@ class SimpleGP:
                 O = []
 
                 for i in range(len(population)):
-
+                    variated = False
                     o = deepcopy(population[i])
                     if ( random() < self.crossover_rate ):
                         o = Variation.SubtreeCrossover( o, population[numpy.random.randint(len(population))] )
+                        variated = True
                     if ( random() < self.mutation_rate ):
                         o = Variation.SubtreeMutation( o, self.functions, self.terminals, max_height=self.initialization_max_tree_height )
+                        variated = True
+                    if variated and self.reset_weights_on_variation:
+                        for node in o.GetSubtree():
+                            node.weights = np.random.normal(size = node.arity * 2)
                     if len(o.GetSubtree()) > self.max_tree_size:
                         del o
                         o = deepcopy( population[i])
-                    else:
+
+
+                    O.append(o)
+                PO = population+O
+
+                if self.backprop_selection_ratio !=1:
+                    if applyBackProp and self.generations % self.backprop_every_generations == 0 and self.generations < self.first_generations:
+                            po_fitness = np.array([PO[curr].fitness for curr in range(len(PO))])
+                            to_select = int(self.backprop_selection_ratio*len(PO)) # Get the top k% fitnessboys
+                            # Unsorted, lowest toSelect fitness individuals, in linear time :)
+                            top_k_percent = np.argpartition(po_fitness, 3)[:to_select]
+                            for curr_top_k in top_k_percent:
+                                PO[curr_top_k] = self.backprop_function.Backprop(PO[curr_top_k], override_iterations = True)
+                                self.fitness_function.Evaluate(PO[curr_top_k]) # Re-evaluate fitness for coming tournament
+                else:
+                    for individual in PO:
                         '''
                         Apply backprop to all if uniform_k was not passed, otherwise apply to uniform_k percent.'
                         Apply backprop every generation if backprop_every_generations is not passed, otherwise only do it every x gens
@@ -128,24 +150,10 @@ class SimpleGP:
                         if applyBackProp and self.generations % self.backprop_every_generations == 0 and self.generations < self.first_generations:
                             if self.uniform_k == 1 or random() <= self.uniform_k:
                                 doBackprop = True
-                        o = self.backprop_function.Backprop(o) if doBackprop else o
-                        self.fitness_function.Evaluate(o)
+                        individual = self.backprop_function.Backprop(individual) if doBackprop else individual
+                        self.fitness_function.Evaluate(individual)
 
-                    O.append(o)
-
-                if self.backprop_selection_ratio != 1: # Non-Default: Apparently, we want to select the top k%.
-                    if applyBackProp and self.generations % self.backprop_every_generations == 0:
-                        population_fitness = np.array([population[curr].fitness for curr in range(len(population))])
-                        to_select = int(self.backprop_selection_ratio*len(population)) # Get the top k% fitnessboys
-                        # Unsorted, lowest toSelect fitness individuals, in linear time :)
-                        top_k_percent = np.argpartition(population_fitness, 3)[:to_select]
-                        for curr_top_k in top_k_percent:
-                            O[curr_top_k] = self.backprop_function.Backprop(O[curr_top_k], override_iterations = True)
-                            self.fitness_function.Evaluate(O[curr_top_k]) # Re-evaluate fitness for coming tournament
-
-                PO = population+O
                 population = Selection.TournamentSelect( PO, len(population), tournament_size=self.tournament_size )
-
                 self.generations = self.generations + 1
 
                 # print ('g:',self.generations,'elite fitness:', np.round(self.fitness_function.elite.fitness,3), ', size:', len(self.fitness_function.elite.GetSubtree()))
