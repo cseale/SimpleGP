@@ -1,8 +1,8 @@
 # Libraries
 import math
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 import sklearn.datasets
 from sklearn.model_selection import KFold
 from copy import deepcopy
@@ -109,38 +109,90 @@ exit()
 filepath = "./logs/learning_rate_and_iterations_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
 
+cv_means_df = pd.DataFrame(index=range(114), columns=df.columns)
+for i in range(114):
+    j = 10*i
+    means = df[j:(j + 10)].mean()
+    for col in cv_means_df.columns.values:
+        cv_means_df.loc[i, col] = means[col]
+
+
+def create_means_df(var_name, variables):
+    means_df = pd.DataFrame(index=range(len(variables)), columns=df.columns)
+    for (i, var) in enumerate(variables):
+        rounded_floats = [np.around(num, decimals=6) for num in cv_means_df[var_name]]
+        selection_cond = np.isclose(rounded_floats, var)
+        means = cv_means_df[selection_cond].mean()
+        for col in cv_means_df.columns.values:
+            means_df.loc[i, col] = means[col]
+    
+    return means_df
+
+var_means_dfs = {
+    "learning_rate": create_means_df("learning_rate", learning_rates),
+    "iterations": create_means_df("iterations", steps_vals)
+}
+
 # Separately plot the influence of the learning rate and the amount of
 # iterations on the MSEs, the amount of generations, the amount of nodes, and
 # the runtime.
 for var in ["learning_rate", "iterations"]:
     var_str = var.replace("_", " ").capitalize()
 
-    # MSEs
-    plt.plot(df[var], df.train_mse, label="Train MSE")
-    plt.plot(df[var], df.test_mse, label="Test MSE")
+    # MSEs using crossval means
+    means_df = var_means_dfs[var]
+    plt.plot(means_df[var], means_df.train_mse, label="Train MSE")
+    plt.plot(means_df[var], means_df.test_mse, label="Test MSE")
     plt.legend()
+    plt.xscale("log")
     plt.xlabel(var_str)
     plt.ylabel("Mean Square Error (MSE)")
     plt.title(f"{var_str} ~ Train and test MSE")
     plt.show()
 
-    # Gens
-    plt.plot(df[var], df.gens)
+    # MSEs
+    plt.scatter(df[var], df.train_mse, label="Train MSE")
+    plt.scatter(df[var], df.test_mse, label="Test MSE")
+    plt.legend()
+    plt.xscale("log")
     plt.xlabel(var_str)
-    plt.ylabel("Generations")
-    plt.title(f"{var_str} ~ Generations")
+    plt.ylabel("Mean Square Error (MSE)")
+    plt.title(f"{var_str} ~ Train and test MSE")
     plt.show()
+
+    # # Gens
+    # plt.scatter(df[var], df.gens)
+    # plt.xlabel(var_str)
+    # plt.ylabel("Generations")
+    # plt.title(f"{var_str} ~ Generations")
+    # plt.show()
+
+    # # Evals
+    # plt.scatter(df[var], df.evals)
+    # plt.xlabel(var_str)
+    # plt.ylabel("Evaluations")
+    # plt.title(f"{var_str} ~ Evaluations")
+    # plt.show()
 
     # Amount of nodes in the final evolved function
-    plt.plot(df[var], df.nodes_amnt)
+    plt.scatter(df[var], df.nodes_amnt)
     plt.xlabel(var_str)
     plt.ylabel("Amount of nodes in the final function")
-    plt.title(f"{var_str} ~ ")
+    plt.title(f"{var_str} ~ Amount of nodes")
     plt.show()
 
-    # Runtime
-    plt.plot(df[var], df.runtime)
-    plt.xlabel(var_str)
-    plt.ylabel("Runtime (s)")
-    plt.title(f"{var_str} ~ Runtime")
-    plt.show()
+    # # Runtime
+    # plt.scatter(df[var], df.runtime)
+    # plt.xlabel(var_str)
+    # plt.ylabel("Runtime (s)")
+    # plt.title(f"{var_str} ~ Runtime")
+    # plt.show()
+
+# Plot evals vs. MSE to display MSE gain over "time" for various lr/iters combs
+for lr in [1e-05, 1e-03, 1e-01]:
+    for iters in [1, 5, 10, 15]:
+        sub_df = df[(df.learning_rate == lr) & (df.iterations == iters)]
+        plt.scatter(sub_df.gens, sub_df.test_mse, label=f"lr={lr}, iters={iters}")
+plt.legend()
+plt.title("Evaluations ~ Test MSE")
+plt.show()
