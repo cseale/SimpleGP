@@ -153,20 +153,13 @@ for var in ["learning_rate", "iterations"]:
     # plt.title(f"{var_str} ~ Train and test MSE")
     # plt.show()
 
-    # MSEs in box plots
+    # MSEs in box plots. Use "whis" to force the showing of min/max values.
     data = [df[df[var] == v].test_mse for v in df[var].unique()]
-    plt.boxplot(data, labels=df[var].unique())
+    plt.boxplot(data, labels=df[var].unique(), whis=float("inf"))
     plt.xlabel(var_str)
     plt.ylabel("Mean Square Error (MSE)")
     plt.title(f"{var_str} ~ Train and test MSE")
     plt.show()
-
-    # # Gens
-    # plt.scatter(df[var], df.gens)
-    # plt.xlabel(var_str)
-    # plt.ylabel("Generations")
-    # plt.title(f"{var_str} ~ Generations")
-    # plt.show()
 
     # # Evals
     # plt.scatter(df[var], df.evals)
@@ -176,18 +169,18 @@ for var in ["learning_rate", "iterations"]:
     # plt.show()
 
     # Amount of nodes in the final evolved function
-    plt.scatter(df[var], df.nodes_amnt)
-    plt.xlabel(var_str)
-    plt.ylabel("Amount of nodes in the final function")
+    fig1, ax = plt.subplots()
+    ax.scatter(df[var], df.nodes_amnt)
+    ax.set_xlabel(var_str)
+    if var == "learning_rate":
+        ax.set_xscale("log")
+    unique_vars = df[var].unique()
+    prepend_var = 1e-07 if var == "learning_rate" else 0
+    unique_vars = np.insert(unique_vars, 0, prepend_var)
+    ax.set_xticks(unique_vars)
+    ax.set_ylabel("Amount of nodes in the final function")
     plt.title(f"{var_str} ~ Amount of nodes")
     plt.show()
-
-    # # Runtime
-    # plt.scatter(df[var], df.runtime)
-    # plt.xlabel(var_str)
-    # plt.ylabel("Runtime (s)")
-    # plt.title(f"{var_str} ~ Runtime")
-    # plt.show()
 
 # Plot evals vs. MSE to display MSE gain over "time" for various lr/iters combs
 for lr in [1e-05, 1e-03, 1e-01]:
