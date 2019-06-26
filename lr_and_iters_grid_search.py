@@ -139,22 +139,23 @@ var_means_dfs = {
 for var in ["learning_rate", "iterations"]:
     var_str = var.replace("_", " ").capitalize()
 
-    # MSEs using crossval means
-    means_df = var_means_dfs[var]
-    plt.plot(means_df[var], means_df.train_mse, label="Train MSE")
-    plt.plot(means_df[var], means_df.test_mse, label="Test MSE")
-    plt.legend()
-    plt.xscale("log")
-    plt.xlabel(var_str)
-    plt.ylabel("Mean Square Error (MSE)")
-    plt.title(f"{var_str} ~ Train and test MSE")
-    plt.show()
+    # # MSEs using crossval means
+    # means_df = var_means_dfs[var]
+    # std = df.test_mse.std()
+    # plt.plot(means_df[var], means_df.train_mse, color="blue", label="Train MSE")
+    # plt.plot(means_df[var], means_df.test_mse, color="orange", label="Test MSE")
+    # # plt.fill_between(df[var], y1=df.test_mse-std, y2=df.test_mse+std, color="orange", alpha=0.3)
+    # plt.legend()
+    # if var == "learning_rate":
+    #     plt.xscale("log")
+    # plt.xlabel(var_str)
+    # plt.ylabel("Mean Square Error (MSE)")
+    # plt.title(f"{var_str} ~ Train and test MSE")
+    # plt.show()
 
-    # MSEs
-    plt.scatter(df[var], df.train_mse, label="Train MSE")
-    plt.scatter(df[var], df.test_mse, label="Test MSE")
-    plt.legend()
-    plt.xscale("log")
+    # MSEs in box plots
+    data = [df[df[var] == v].test_mse for v in df[var].unique()]
+    plt.boxplot(data, labels=df[var].unique())
     plt.xlabel(var_str)
     plt.ylabel("Mean Square Error (MSE)")
     plt.title(f"{var_str} ~ Train and test MSE")
@@ -191,8 +192,8 @@ for var in ["learning_rate", "iterations"]:
 # Plot evals vs. MSE to display MSE gain over "time" for various lr/iters combs
 for lr in [1e-05, 1e-03, 1e-01]:
     for iters in [1, 5, 10, 15]:
-        sub_df = df[(df.learning_rate == lr) & (df.iterations == iters)]
-        plt.scatter(sub_df.gens, sub_df.test_mse, label=f"lr={lr}, iters={iters}")
+        sub_df = cv_means_df[(cv_means_df.learning_rate == lr) & (cv_means_df.iterations == iters)]
+        plt.plot(sub_df.gens, sub_df.test_mse, label=f"lr={lr}, iters={iters}")
 plt.legend()
 plt.title("Evaluations ~ Test MSE")
 plt.show()
