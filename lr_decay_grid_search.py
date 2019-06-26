@@ -71,7 +71,8 @@ for lr in learning_rates:
             for (train_index, test_index) in kf.split(X):
                 i += 1
                 counter += 1
-                print(f"Running experiment {counter}/{total_experiments}, lr={lr}, iters={steps}, crossval iter {i}/10")
+                decay_func_str = str(decay_func_param_pair[0]).split()[1]
+                print(f"Running experiment {counter}/{total_experiments}, lr={lr}, iters={steps}, decay_f={decay_func_str}, k={decay_func_param_pair[1]} crossval iter {i}/10")
 
                 # Reset fitness function object with new train/test sets
                 X_train, X_test = X[train_index], X[test_index]
@@ -83,7 +84,7 @@ for lr in learning_rates:
                 backprop_function = Backpropagation(
                     X_train, y_train,
                     iters=steps, learning_rate=lr,
-                    decay_func=decay_func, decay_k=k
+                    decayFunction=decay_func, decay_k=k
                 )
                 
                 # Set SGP params
