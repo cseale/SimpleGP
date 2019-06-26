@@ -2,25 +2,29 @@ import numpy as np
 from copy import deepcopy
 import math
 
+
 class Backpropagation:
 
-	def StepDecay(self, iteration): # Halves the learning rate every 10 itertations
-		newLr = self.learning_rate * math.pow(0.5, math.floor(iteration / 2))
+	def StepDecay(self, iteration): # Halves the learning rate every k iterations
+        k = self.decay_k
+        newLr = self.learning_rate * math.pow(0.5, math.floor((1+iteration)/k))
 		return newLr
 
 	def ExpDecay(self, iteration): # Exponential Decay, -0.05 is hyperparam (res is 0.6 after 10 gens)
-		newLr = self.learning_rate * math.exp(-0.05 * iteration)
+        k = self.decay_k
+		newLr = self.learning_rate * math.exp(-k * iteration)
 		return newLr
 
 	def NoDecay(self, iteration):
 		return self.learning_rate
 
-	def __init__( self, X_train, y_train, iters=5, learning_rate=0.01, decayFunction = NoDecay, override_iterations = None ):
+	def __init__( self, X_train, y_train, iters=5, learning_rate=0.01, decayFunction = NoDecay, decay_k=1, override_iterations = None ):
 		self.X_train = X_train
 		self.y_train = y_train
 		self.iterations = iters
 		self.learning_rate = learning_rate
-		self.decayFunction = decayFunction
+        self.decayFunction = decayFunction
+        self.decay_k = decay_k
 		self.override_iterations = self.iterations if override_iterations is None else override_iterations
 
 	def Backprop( self, individual, override_iterations = False ): # Generation is passed for decaying learning rate.
@@ -57,3 +61,9 @@ class Backpropagation:
 			individual.GradientDescent(grad_mse, newLr)
 
 		return individual
+
+
+class DecayFunc(Enum):
+    NO_DECAY = 0
+    STEP_DECAY = 1
+    EXP_DECAY = 2
