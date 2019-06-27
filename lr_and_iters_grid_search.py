@@ -182,11 +182,13 @@ for var in ["learning_rate", "iterations"]:
     plt.title(f"{var_str} ~ Amount of nodes")
     plt.show()
 
-# Plot evals vs. MSE to display MSE gain over "time" for various lr/iters combs
+# Plot gens vs. MSE to display the effect of backprop with each parameter comb
 for lr in [1e-05, 1e-03, 1e-01]:
     for iters in [1, 5, 10, 15]:
-        sub_df = cv_means_df[(cv_means_df.learning_rate == lr) & (cv_means_df.iterations == iters)]
-        plt.plot(sub_df.gens, sub_df.test_mse, label=f"lr={lr}, iters={iters}")
+        rounded_floats = [np.around(num, decimals=6) for num in df["learning_rate"]]
+        selection_cond = (np.isclose(rounded_floats, lr)) & (df.iterations == iters)
+        sub_df = df[selection_cond]
+        plt.scatter(sub_df.gens, sub_df.test_mse, label=f"lr={lr}, iters={iters}")
 plt.legend()
 plt.title("Evaluations ~ Test MSE")
 plt.show()
