@@ -120,9 +120,19 @@ for lr in learning_rates:
 log_file.close()
 
 exit()
+
 # Extract the log file's contents into a data frame for easy processing
 filepath = "./logs/lr-iters-lr_decay-_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
+
+# Add the decay-k parameter manually
+decay_params_times_ten = []
+for params_list in [[decay_func_params[i]] * 10 for i in range(len(decay_func_params))]:
+    decay_params_times_ten.extend(params_list)
+decay_f_series = pd.Series([str(pair[0]).split()[1].strip("Backpropagation.") for pair in (decay_params_times_ten * 60)])
+decay_k_series = pd.Series([pair[1] for pair in (decay_params_times_ten * 60)])
+df["decay_f"] = decay_f_series
+df["decay_k"] = decay_k_series
 
 # Separately plot the influence of the learning rate and the amount of
 # iterations on the MSEs, the amount of generations, the amount of nodes, and
