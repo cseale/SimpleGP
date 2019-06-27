@@ -139,42 +139,31 @@ var_means_dfs = {
 for var in ["learning_rate", "iterations"]:
     var_str = var.replace("_", " ").capitalize()
 
-    # # MSEs using crossval means
-    # means_df = var_means_dfs[var]
-    # std = df.test_mse.std()
-    # plt.plot(means_df[var], means_df.train_mse, color="blue", label="Train MSE")
-    # plt.plot(means_df[var], means_df.test_mse, color="orange", label="Test MSE")
-    # # plt.fill_between(df[var], y1=df.test_mse-std, y2=df.test_mse+std, color="orange", alpha=0.3)
-    # plt.legend()
-    # if var == "learning_rate":
-    #     plt.xscale("log")
-    # plt.xlabel(var_str)
-    # plt.ylabel("Mean Square Error (MSE)")
-    # plt.title(f"{var_str} ~ Train and test MSE")
-    # plt.show()
+    # When evaluating one variable, keep the other constant
+    sub_df = df[df.iterations == 15] if var == "learning_rate" else df[df.learning_rate == 0.001]
 
     # MSEs in box plots. Force the whiskers to extend to min/max values.
-    data = [df[df[var] == v].test_mse for v in df[var].unique()]
-    plt.boxplot(data, labels=df[var].unique(), whis=float("inf"))
+    data = [sub_df[sub_df[var] == v].test_mse for v in sub_df[var].unique()]
+    plt.boxplot(data, labels=sub_df[var].unique(), whis=float("inf"))
     plt.xlabel(var_str)
     plt.ylabel("Mean Square Error (MSE)")
     plt.title(f"{var_str} ~ Test MSE")
-    plt.savefig(f"./figs/{var}-vs-mse-box.png")
+    # plt.savefig(f"./figs/{var}-vs-mse-box.png")
     plt.show()
 
     # Amount of nodes in the final evolved function
     fig1, ax = plt.subplots()
-    ax.scatter(df[var], df.nodes_amnt)
+    ax.scatter(sub_df[var], sub_df.nodes_amnt)
     ax.set_xlabel(var_str)
     if var == "learning_rate":
         ax.set_xscale("log")
-    unique_vars = df[var].unique()
+    unique_vars = sub_df[var].unique()
     prepend_var = 1e-07 if var == "learning_rate" else 0
     unique_vars = np.insert(unique_vars, 0, prepend_var)
     ax.set_xticks(unique_vars)
     ax.set_ylabel("Amount of nodes in the final function")
     plt.title(f"{var_str} ~ Amount of nodes")
-    plt.savefig(f"./figs/{var}-vs-nodes-scatter.png")
+    # plt.savefig(f"./figs/{var}-vs-nodes-scatter.png")
     plt.show()
 
 # Plot gens vs. MSE to display the effect of backprop with each parameter comb
@@ -188,5 +177,5 @@ plt.legend()
 plt.title("Generations ~ Test MSE")
 plt.xlabel("Generations")
 plt.ylabel("Mean Square Error (MSE)")
-plt.savefig(f"./figs/lr-and-iters-gens-vs-mse-scatter.png")
+# plt.savefig(f"./figs/lr-and-iters-gens-vs-mse-scatter.png")
 plt.show()
