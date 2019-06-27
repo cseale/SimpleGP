@@ -153,12 +153,13 @@ for var in ["learning_rate", "iterations"]:
     # plt.title(f"{var_str} ~ Train and test MSE")
     # plt.show()
 
-    # MSEs in box plots. Use "whis" to force the showing of min/max values.
+    # MSEs in box plots. Force the whiskers to extend to min/max values.
     data = [df[df[var] == v].test_mse for v in df[var].unique()]
     plt.boxplot(data, labels=df[var].unique(), whis=float("inf"))
     plt.xlabel(var_str)
     plt.ylabel("Mean Square Error (MSE)")
     plt.title(f"{var_str} ~ Train and test MSE")
+    plt.savefig(f"./figs/{var}-vs-mse-box.png")
     plt.show()
 
     # # Evals
@@ -180,6 +181,7 @@ for var in ["learning_rate", "iterations"]:
     ax.set_xticks(unique_vars)
     ax.set_ylabel("Amount of nodes in the final function")
     plt.title(f"{var_str} ~ Amount of nodes")
+    plt.savefig(f"./figs/{var}-vs-nodes-scatter.png")
     plt.show()
 
 # Plot gens vs. MSE to display the effect of backprop with each parameter comb
@@ -190,5 +192,8 @@ for lr in [1e-05, 1e-03, 1e-01]:
         sub_df = df[selection_cond]
         plt.scatter(sub_df.gens, sub_df.test_mse, label=f"lr={lr}, iters={iters}")
 plt.legend()
-plt.title("Evaluations ~ Test MSE")
+plt.title("Generations ~ Test MSE")
+plt.xlabel("Generations")
+plt.ylabel("Mean Square Error (MSE)")
+plt.savefig(f"./figs/lr-and-iters-gens-vs-mse-scatter.png")
 plt.show()
