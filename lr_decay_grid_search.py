@@ -134,38 +134,42 @@ decay_k_series = pd.Series([pair[1] for pair in (decay_params_times_ten * 60)])
 df["decay_f"] = decay_f_series
 df["decay_k"] = decay_k_series
 
-# Separately plot the influence of the learning rate and the amount of
-# iterations on the MSEs, the amount of generations, the amount of nodes, and
-# the runtime.
-for var in ["learning_rate", "iterations"]:
-    var_str = var.replace("_", " ").capitalize()
+decay_func_param_tups = [("StepDecay", k) for k in [5, 10, 15]] + \
+                        [("ExpDecay", k) for k in [0.05, 0.1, 0.15]]
+abbrev_f = {
+    "StepDecay": "SD",
+    "ExpDecay": "ED"
+}
 
-    # MSEs
-    plt.scatter(df[var], df.train_mse, label="Train MSE")
-    plt.scatter(df[var], df.test_mse, label="Test MSE")
-    plt.legend()
-    plt.xlabel(var_str)
-    plt.ylabel("Mean Square Error (MSE)")
-    plt.title(f"{var_str} ~ Train and test MSE")
-    plt.show()
+# Construct a box plot to describe the test MSE for all decay functions
+mse_data = [df[(df.decay_f == f) & (df.decay_k == k)].test_mse for (f, k) in decay_func_param_tups]
+boxplot_labels = [f"f={abbrev_f[pair[0]]}, k={pair[1]}" for pair in decay_func_param_tups]
+plt.boxplot(mse_data, labels=boxplot_labels, whis=float("inf"))
+plt.xlabel("Decay function & parameter")
+plt.ylabel("Mean Square Error (MSE)")
+plt.title(f"Decay function ~ Test MSE")
+plt.savefig(f"./figs/lr_decay-func-vs-mse-box.png")
+plt.show()
 
-    # Gens
-    plt.scatter(df[var], df.gens)
-    plt.xlabel(var_str)
-    plt.ylabel("Generations")
-    plt.title(f"{var_str} ~ Generations")
-    plt.show()
+# Plot gens vs. MSE for each decay function using the optimal lr & iters params
+(opt_lr, opt_iters) = (0.001, 15)
+colors = {
+    ("StepDecay", 5): "blue",
+    ("StepDecay", 10): "red",
+    ("StepDecay", 15): "grey",
+    ("ExpDecay", 0.05): "orange",
+    ("ExpDecay", 0.1): "green",
+    ("ExpDecay", 0.15): "purple"
+}
+opt_df = df[(df.learning_rate == opt_lr) & (df.iterations == opt_iters)]
+for (f, k) in decay_func_param_tups:
+    sub_df = opt_df[(opt_df.decay_f == f) & (opt_df.decay_k == k)]
+    plt.scatter(sub_df.evals, sub_df.test_mse, label=f"f={abbrev_f[f]}, k={k}", color=colors[(f, k)])
+    plt.axhline(sub_df.test_mse.mean(), color=colors[(f, k)])
+plt.legend()
+plt.xlabel("Evaluations")
+plt.ylabel("Mean Square Error (MSE)")
+plt.title(f"Evaluations ~ Test MSE for optimal lr and #iters")
+# plt.savefig(f"./figs/evals-vs-mse-lr-decay-opt-params.png")
+plt.show()
 
-    # Amount of nodes in the final evolved function
-    plt.scatter(df[var], df.nodes_amnt)
-    plt.xlabel(var_str)
-    plt.ylabel("Amount of nodes in the final function")
-    plt.title(f"{var_str} ~ Amount of nodes")
-    plt.show()
-
-    # Runtime
-    plt.scatter(df[var], df.runtime)
-    plt.xlabel(var_str)
-    plt.ylabel("Runtime (s)")
-    plt.title(f"{var_str} ~ Runtime")
-    plt.show()

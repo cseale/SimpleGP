@@ -158,16 +158,9 @@ for var in ["learning_rate", "iterations"]:
     plt.boxplot(data, labels=df[var].unique(), whis=float("inf"))
     plt.xlabel(var_str)
     plt.ylabel("Mean Square Error (MSE)")
-    plt.title(f"{var_str} ~ Train and test MSE")
+    plt.title(f"{var_str} ~ Test MSE")
     plt.savefig(f"./figs/{var}-vs-mse-box.png")
     plt.show()
-
-    # # Evals
-    # plt.scatter(df[var], df.evals)
-    # plt.xlabel(var_str)
-    # plt.ylabel("Evaluations")
-    # plt.title(f"{var_str} ~ Evaluations")
-    # plt.show()
 
     # Amount of nodes in the final evolved function
     fig1, ax = plt.subplots()
