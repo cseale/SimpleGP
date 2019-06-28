@@ -104,7 +104,6 @@ for lr in learning_rates:
 
 log_file.close()
 
-exit()
 # Extract the log file's contents into a data frame for easy processing
 filepath = "./logs/learning_rate_and_iterations_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
@@ -132,6 +131,10 @@ var_means_dfs = {
     "learning_rate": create_means_df("learning_rate", learning_rates),
     "iterations": create_means_df("iterations", steps_vals)
 }
+
+# Find mean difference between train and test MSE for each learning rate
+lr_dfs = [df[(df.learning_rate == lr) & (df.iterations == 15)] for lr in learning_rates]
+lr_mse_diffs = [(lr_df.test_mse - lr_df.train_mse).abs().mean() for lr_df in lr_dfs]
 
 # Separately plot the influence of the learning rate and the amount of
 # iterations on the MSEs, the amount of generations, the amount of nodes, and

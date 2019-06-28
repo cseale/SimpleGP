@@ -3,6 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 import sklearn.datasets
 from sklearn.model_selection import KFold
 from copy import deepcopy
@@ -18,8 +19,6 @@ np.random.seed(42)
 
 # Load regression dataset 
 X, y = sklearn.datasets.load_diabetes( return_X_y=True )
-# Take a dataset split
-# X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.5, random_state=42 )
 
 # Set functions and terminals
 functions = [
@@ -54,8 +53,6 @@ max_time = 20
 
 # Optimal backprop params
 uni_k = 0.5
-# lr = 0.001
-# iters = 15
 
 # Use 10-fold cross validation
 kf = KFold(n_splits=10, shuffle=True, random_state=42)
@@ -119,13 +116,14 @@ for lr in learning_rates:
 
 log_file.close()
 
-exit()
-
 # Extract the log file's contents into a data frame for easy processing
 filepath = "./logs/lr-iters-lr_decay-_experiments.txt"
 df = pd.read_csv(filepath, sep=" ")
 
 # Add the decay-k parameter manually
+decay_func_params = \
+    [(Backpropagation.StepDecay, k) for k in [5, 10, 15]] + \
+    [(Backpropagation.ExpDecay, k) for k in [0.05, 0.1, 0.15]]
 decay_params_times_ten = []
 for params_list in [[decay_func_params[i]] * 10 for i in range(len(decay_func_params))]:
     decay_params_times_ten.extend(params_list)
@@ -133,6 +131,7 @@ decay_f_series = pd.Series([str(pair[0]).split()[1].strip("Backpropagation.") fo
 decay_k_series = pd.Series([pair[1] for pair in (decay_params_times_ten * 60)])
 df["decay_f"] = decay_f_series
 df["decay_k"] = decay_k_series
+full_df = df.copy()
 
 decay_func_param_tups = [("StepDecay", k) for k in [5, 10, 15]] + \
                         [("ExpDecay", k) for k in [0.05, 0.1, 0.15]]
@@ -141,18 +140,26 @@ abbrev_f = {
     "ExpDecay": "ED"
 }
 
+# Set params to optimal ones
+(opt_lr, opt_iters) = (0.001, 13)
+freeze_params = (df.learning_rate == opt_lr) & (df.iterations == opt_iters)
+df = df[freeze_params]
+
+# Find mean difference between train and test MSE for each decay function
+decay_f_dfs = [df[(df.decay_f == f) & (df.decay_k == k)] for (f, k) in decay_func_param_tups]
+decay_f_mse_diffs = [(dec_df.test_mse - dec_df.train_mse).abs().mean() for dec_df in decay_f_dfs]
+
 # Construct a box plot to describe the test MSE for all decay functions
 mse_data = [df[(df.decay_f == f) & (df.decay_k == k)].test_mse for (f, k) in decay_func_param_tups]
-boxplot_labels = [f"f={abbrev_f[pair[0]]}, k={pair[1]}" for pair in decay_func_param_tups]
+boxplot_labels = [f"({abbrev_f[pair[0]]}, {pair[1]})" for pair in decay_func_param_tups]
 plt.boxplot(mse_data, labels=boxplot_labels, whis=float("inf"))
 plt.xlabel("Decay function & parameter")
 plt.ylabel("Mean Square Error (MSE)")
-plt.title(f"Decay function ~ Test MSE")
-plt.savefig(f"./figs/lr_decay-func-vs-mse-box.png")
+plt.title(f"Decay function ~ Test MSE for optimal lr and #iters")
+# plt.savefig(f"./figs/lr_decay-func-vs-mse-box.png")
 plt.show()
 
 # Plot gens vs. MSE for each decay function using the optimal lr & iters params
-(opt_lr, opt_iters) = (0.001, 15)
 colors = {
     ("StepDecay", 5): "blue",
     ("StepDecay", 10): "red",
@@ -161,7 +168,7 @@ colors = {
     ("ExpDecay", 0.1): "green",
     ("ExpDecay", 0.15): "purple"
 }
-opt_df = df[(df.learning_rate == opt_lr) & (df.iterations == opt_iters)]
+opt_df = df
 for (f, k) in decay_func_param_tups:
     sub_df = opt_df[(opt_df.decay_f == f) & (opt_df.decay_k == k)]
     plt.scatter(sub_df.evals, sub_df.test_mse, label=f"f={abbrev_f[f]}, k={k}", color=colors[(f, k)])
@@ -173,3 +180,29 @@ plt.title(f"Evaluations ~ Test MSE for optimal lr and #iters")
 # plt.savefig(f"./figs/evals-vs-mse-lr-decay-opt-params.png")
 plt.show()
 
+# Plot correlation heat map to show the decay functions' lack of influence.
+# Set up clean dataframes for the heat maps first.
+corr_df = df.copy()
+corr_df = corr_df.drop(["iterations", "learning_rate", "runtime"], axis=1)
+corr_df_k_step = corr_df.copy()[corr_df.decay_f == "StepDecay"]
+corr_df_k_step = corr_df_k_step.drop(["decay_f"], axis=1)
+corr_df_k_exp = corr_df.copy()[corr_df.decay_f == "ExpDecay"]
+corr_df_k_exp = corr_df_k_exp.drop(["decay_f"], axis=1)
+corr_df = corr_df.drop(["decay_k"], axis=1)
+corr_df["decay_f"] = pd.Series(df.decay_f.astype("category").cat.codes)
+
+# Plot corr heat map for decay functions
+sns.heatmap(corr_df.corr(), annot=True)
+plt.tight_layout()
+# plt.savefig("./figs/decay_f-corr-heatmap.png")
+plt.show()
+
+# Plot corr heat map for each function's parameter impact
+sns.heatmap(corr_df_k_step.corr(), annot=True)
+plt.tight_layout()
+# plt.savefig("./figs/step-decay_k-corr_heatmap.png")
+plt.show()
+sns.heatmap(corr_df_k_exp.corr(), annot=True)
+plt.tight_layout()
+# plt.savefig("./figs/exp-decay_k-corr_heatmap.png")
+plt.show()
